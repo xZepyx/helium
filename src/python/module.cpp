@@ -5,6 +5,10 @@
 #include "../types/widget.hpp"
 #include "../types/label.hpp"
 #include "../types/panel.hpp"
+#include "../types/box.hpp"
+#include "../types/button.hpp"
+
+#include "../managers/cssmanager.hpp"
 
 namespace py = pybind11;
 
@@ -21,6 +25,10 @@ PYBIND11_MODULE(helium, m) {
         g_main_loop_run(loop);
     });
 
+    m.def("load_css", [](const std::string& path) {
+            CSS_MANAGER::load(path.c_str());
+        }, py::arg("path"));
+
     py::class_<Widget>(m, "Widget")
         .def("show", &Widget::show)
         .def("add_css_class", &Widget::add_css_class);
@@ -29,6 +37,26 @@ PYBIND11_MODULE(helium, m) {
         .def(py::init<const std::string&>(), py::arg("label") = "")
         .def("set_label", &Label::set_label)
         .def("get_label", &Label::get_label);
+
+    py::class_<Button, Widget>(m, "Button")
+            .def(py::init([](std::string label) {
+                ButtonProperties props;
+                props.label = label;
+                return new Button(props);
+            }), py::arg("label") = "");
+
+    py::class_<Box, Widget>(m, "Box")
+        .def(py::init([](std::string orientation, int spacing, std::vector<Widget*> children) {
+            BoxProperties props;
+            props.orientation = orientation;
+            props.spacing = spacing;
+            props.children = children;
+            return new Box(props);
+        }), 
+        py::arg("orientation") = "horizontal", 
+        py::arg("spacing") = 0, 
+        py::arg("children") = std::vector<Widget*>{})
+        .def("add", &Box::add);
 
     py::class_<Panel, Widget>(m, "Panel")
         .def(py::init([](std::string namespace_, std::vector<std::string> anchor, bool exclusive, std::string layer, std::string kb_mode, bool popup, int width, int height) {
