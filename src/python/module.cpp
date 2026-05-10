@@ -9,50 +9,55 @@
 namespace py = pybind11;
 
 // I put all the shit I could process here.
-// It was real pain in the ass to read the documenation.
+// It was real pain in the ass to read the documentation.
 
 PYBIND11_MODULE(helium, m) {
-    m.doc() = "Helium - A gtk4 layer shell framework";
+    m.doc() = "Helium shell framework";
 
-    m.def("init", []() {
-        gtk_init();
-    });
+    m.def("init", []() { gtk_init(); });
 
     m.def("run", []() {
-        GMainLoop* loop =
-            g_main_loop_new(
-                nullptr,
-                false
-            );
-
+        GMainLoop* loop = g_main_loop_new(nullptr, false);
         g_main_loop_run(loop);
     });
+
     py::class_<Widget>(m, "Widget")
         .def("show", &Widget::show)
         .def("add_css_class", &Widget::add_css_class);
 
     py::class_<Label, Widget>(m, "Label")
-        .def(py::init<const std::string&>())
+        .def(py::init<const std::string&>(), py::arg("label") = "")
         .def("set_label", &Label::set_label)
         .def("get_label", &Label::get_label);
 
-    py::class_<PanelProperties>(m, "PanelProperties")
-        .def(py::init<>())
-
-        .def_readwrite("namespace_", &PanelProperties::namespace_)
-        .def_readwrite("monitor", &PanelProperties::monitor)
-        .def_readwrite("anchor", &PanelProperties::anchor)
-        .def_readwrite("exclusive", &PanelProperties::exclusive)
-        .def_readwrite("layer", &PanelProperties::layer)
-        .def_readwrite("kb_mode", &PanelProperties::kb_mode)
-        .def_readwrite("popup", &PanelProperties::popup)
-        .def_readwrite("width", &PanelProperties::width)
-        .def_readwrite("height", &PanelProperties::height);
-
     py::class_<Panel, Widget>(m, "Panel")
-        .def(py::init<const PanelProperties&>())
-        .def("set_width", &Panel::set_width)
-        .def("set_height", &Panel::set_height)
-        .def("set_size", &Panel::set_size)
-        .def("set_child", &Panel::set_child);
+        .def(py::init([](std::string namespace_, std::vector<std::string> anchor, bool exclusive, std::string layer, std::string kb_mode, bool popup, int width, int height) {
+            PanelProperties props;
+
+            props.namespace_ = namespace_;
+            props.anchor = anchor;
+            props.exclusive = exclusive;
+            props.layer = layer;
+            props.kb_mode = kb_mode;
+            props.popup = popup;
+            props.width = width;
+            props.height = height;
+
+            return new Panel(props);
+        }),
+
+        py::arg("namespace") = "panel",
+        py::arg("anchor") = std::vector<std::string>{},
+        py::arg("exclusive") = true,
+        py::arg("layer") = "top",
+        py::arg("kb_mode") = "none",
+        py::arg("popup") = false,
+        py::arg("width") = -1,
+        py::arg("height") = 40
+    )
+
+    .def("set_width", &Panel::set_width)
+    .def("set_height", &Panel::set_height)
+    .def("set_size", &Panel::set_size)
+    .def("set_child", &Panel::set_child);
 }

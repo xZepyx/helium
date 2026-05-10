@@ -2,15 +2,14 @@ import helium
 
 helium.init()
 
-props = helium.PanelProperties()
-props.namespace_ = "example"
-props.anchor = [
-    "top",
-    "left",
-    "right"
-]
-props.height = 40
-panel = helium.Panel(props)
+panel = helium.Panel(
+    anchor=[
+        "top",
+        "left",
+        "right"
+    ],
+    height = 40
+)
 
 label = helium.Label(
     "hello from python"
@@ -18,5 +17,9 @@ label = helium.Label(
 
 panel.set_child(label)
 panel.show()
+
+panel.add_css_class(
+    "panel"
+)
 
 helium.run()
