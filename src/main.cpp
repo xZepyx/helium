@@ -2,6 +2,7 @@
 
 #include "types/panel.hpp"
 #include "managers/cssmanager.hpp"
+#include "types/label.hpp"
 
 int main(int argc, char** argv) {
     gtk_init();
@@ -13,7 +14,8 @@ int main(int argc, char** argv) {
         .monitor = 0,
         .anchor = {
             "top",
-            "right"
+            "right",
+            "left"
         },
         .exclusive = true,
         .layer = "top",
@@ -24,9 +26,10 @@ int main(int argc, char** argv) {
     panel.add_css_class("panel");
     panel.show();
 
-    panel.set_height(100);
-    panel.set_width(700);
+    panel.set_height(50);
 
+    Label label("Hello World");
+    panel.set_child(&label);
     GMainLoop* loop =
         g_main_loop_new(nullptr, false);
 

@@ -5,14 +5,35 @@ project(
     default_options: ['cpp_std=c++20']
 )
 
+pybind11 = dependency('pybind11')
+
 gtk = dependency('gtk4')
+
 layer_shell = dependency('gtk4-layer-shell-0')
 
 executable(
-    'helium',
+    'helium_test',
+
     'src/main.cpp',
+
     dependencies: [
         gtk,
         layer_shell
     ]
+)
+
+python = import('python').find_installation()
+
+python.extension_module(
+    'helium',
+
+    'src/python/module.cpp',
+
+    dependencies: [
+        pybind11,
+        gtk,
+        layer_shell
+    ],
+
+    install: false
 )
