@@ -33,4 +33,6 @@ public:
             class_name.c_str()
         );
     }
+
+    virtual void set_child(Widget* child) {} // setchild method
 };

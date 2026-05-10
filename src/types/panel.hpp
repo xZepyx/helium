@@ -10,23 +10,14 @@
 
 struct PanelProperties {
     std::string namespace_;
-
     Widget* child = nullptr;
-
     int monitor = 0;
-
     std::vector<std::string> anchor;
-
     bool exclusive = true;
-
     std::string layer = "top";
-
     std::string kb_mode = "none";
-
     bool popup = false;
-
     int height = 40;
-
     int width = -1;
 };
 
@@ -157,10 +148,7 @@ public:
         );
     }
 
-    void set_size(
-        int width,
-        int height
-    ) {
+    void set_size(int width, int height) {
         current_width = width;
         current_height = height;
 
@@ -170,7 +158,14 @@ public:
             current_height
         );
     }
-    
+
+    void set_child(Widget* child) override {
+        gtk_window_set_child(
+            GTK_WINDOW(native),
+            child->get_native()
+        );
+    }
+
     private:
         int current_width = -1;
         int current_height = -1;
