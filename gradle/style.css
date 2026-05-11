@@ -1,13 +1,38 @@
 .panel {
     background: #1d222c;
-
-    border-radius: 0px;
-    margin: 12px;
+    border-radius: 12px;
+    /* This margin affects the window's distance from screen edges */
+    margin: 12px; 
     min-height: 45px;
     color: white;
+}
+
+/* Add specific padding to the left-most and right-most elements */
+.leftbox {
+    background: #2d3235;
+    margin: 5px;
+    padding: 10px;
+    border-radius: 12px;
+    margin-left: 10px; /* Spacing from the far left edge */
+}
+
+.rightbox {
+    background: #2d3235;
+    border-radius: 12px;
+    margin: 5px;
+    padding: 10px;
+    margin-right: 10px; /* Spacing from the far right edge */
+}
+
+.centerbox {
+    background: #2d3235;
+    border-radius: 12px;
+    margin: 5px;
+    padding: 10px;
 }
 
 .clocklabel {
     font-family: "Inter";
     font-size: 20px;
+    color: white;
 }

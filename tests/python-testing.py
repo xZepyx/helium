@@ -1,43 +1,58 @@
-from helium.types import Panel, Label, Box, Button
+from helium.types import Panel, Label, Box
 from helium.functions import Poll
 import helium
 import datetime
 
-# Initialize the framework
 helium.init()
 helium.load_css("gradle/style.css")
 
 class Bar(Panel):
     def __init__(self):
-        # 1. Initialize the Panel via helium.types.Panel
-        # The arguments map to our C++ lambda wrapper in module.cpp
         super().__init__(
             namespace="my-shell", 
             anchor=["top", "left", "right"], 
             height=40
         )
         
-        # 2. Setup the UI components
+        # 1. Left Section: Apps
+        self.left_box = Box(halign="start")
+        self.left_box.add(Label("Apps"))
+        self.left_box.add_css_class("leftbox")
+
+        # 2. Center Section: No 1-10
+        self.center_box = Box(halign="center")
+        self.center_box.add(Label("Workspaces"))
+        self.center_box.add_css_class("centerbox")
+
+        # 3. Right Section: Clock
+        self.right_box = Box(halign="end")
         self.clock_label = Label("Loading...")
-        self.clock_label.add_css_class("clocklabel")
-        self.set_child(self.clock_label)
+        self.right_box.add(self.clock_label)
+        self.right_box.add_css_class("rightbox")
+
+        # 4. Main Container (The "cbox")
+        # We put all three inside a horizontal box that fills the panel
+        self.main_container = Box(
+            orientation="horizontal",
+            children=[self.left_box, self.center_box, self.right_box],
+            halign="fill"
+        )
         
+        # Ensure the sub-boxes expand to fill the width so halign works
+        self.left_box.set_hexpand(True)
+        self.center_box.set_hexpand(True)
+        self.right_box.set_hexpand(True)
+
+        self.set_child(self.main_container)
         self.add_css_class("panel")
         self.show()
         
-        # 3. Use the built-in library poller from helium.functions
-        # We pass the method reference directly.
         Poll(1000, self.update_clock)
 
     def update_clock(self):
-        """
-        Updates the label with current time.
-        Returns True to keep the timer alive.
-        """
         now = datetime.datetime.now().strftime("%H:%M:%S")
         self.clock_label.set_label(now)
         return True 
 
-# Instantiate and start the GTK main loop
 Bar()
 helium.run()

@@ -42,7 +42,9 @@ PYBIND11_MODULE(helium, m) {
         .def("show", &Widget::show)
         .def("add_css_class", &Widget::add_css_class)
         .def("remove_css_class", &Widget::remove_css_class)
-        .def("connect", &Widget::connect_signal, py::arg("signal_name"), py::arg("callback"));
+        .def("connect", &Widget::connect_signal, py::arg("signal_name"), py::arg("callback"))
+        .def("set_hexpand", [](Widget& w, bool expand) { gtk_widget_set_hexpand(w.get_native(), expand); })
+        .def("set_vexpand", [](Widget& w, bool expand) { gtk_widget_set_vexpand(w.get_native(), expand); });
 
     py::class_<Label, Widget>(t, "Label")
         .def(py::init<const std::string&>(), py::arg("label") = "")
@@ -58,13 +60,17 @@ PYBIND11_MODULE(helium, m) {
         .def("on_click", &Button::on_click, py::arg("callback"));
 
     py::class_<Box, Widget>(t, "Box")
-        .def(py::init([](std::string orientation, int spacing, std::vector<Widget*> children) {
-            BoxProperties props;
-            props.orientation = orientation;
-            props.spacing = spacing;
-            props.children = children;
+        .def(py::init([](std::string orientation, int spacing, std::vector<Widget*> children, std::string halign, std::string valign, bool hexpand, bool vexpand) {
+            BoxProperties props{orientation, spacing, children, halign, valign, hexpand, vexpand};
             return new Box(props);
-        }), py::arg("orientation") = "horizontal", py::arg("spacing") = 0, py::arg("children") = std::vector<Widget*>{})
+        }), 
+        py::arg("orientation") = "horizontal", 
+        py::arg("spacing") = 0, 
+        py::arg("children") = std::vector<Widget*>{},
+        py::arg("halign") = "fill",
+        py::arg("valign") = "fill",
+        py::arg("hexpand") = false,
+        py::arg("vexpand") = false)
         .def("add", &Box::add);
 
     py::class_<CenterBox, Widget>(t, "CenterBox")
