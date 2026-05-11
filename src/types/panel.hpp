@@ -12,13 +12,21 @@ struct PanelProperties {
     std::string namespace_;
     Widget* child = nullptr;
     int monitor = 0;
+
     std::vector<std::string> anchor;
     bool exclusive = true;
+
     std::string layer = "top";
     std::string kb_mode = "none";
     bool popup = false;
+
     int height = 40;
     int width = -1;
+
+    int margin_top = 0;
+    int margin_bottom = 0;
+    int margin_left = 0;
+    int margin_right = 0;
 };
 
 class Panel : public Widget {
@@ -57,6 +65,12 @@ public:
                 GTK_LAYER_SHELL_LAYER_OVERLAY
             );
         }
+
+        // margins
+        gtk_layer_set_margin(window, GTK_LAYER_SHELL_EDGE_TOP, properties.margin_top);
+        gtk_layer_set_margin(window, GTK_LAYER_SHELL_EDGE_BOTTOM, properties.margin_bottom);
+        gtk_layer_set_margin(window, GTK_LAYER_SHELL_EDGE_LEFT, properties.margin_left);
+        gtk_layer_set_margin(window, GTK_LAYER_SHELL_EDGE_RIGHT, properties.margin_right);
 
         // anchors
         for (const auto& anchor :
@@ -164,6 +178,16 @@ public:
             GTK_WINDOW(native),
             child->get_native()
         );
+    }
+
+    void set_margin(std::string side, int value) {
+        GtkLayerShellEdge edge;
+        if (side == "top") edge = GTK_LAYER_SHELL_EDGE_TOP;
+        else if (side == "bottom") edge = GTK_LAYER_SHELL_EDGE_BOTTOM;
+        else if (side == "left") edge = GTK_LAYER_SHELL_EDGE_LEFT;
+        else edge = GTK_LAYER_SHELL_EDGE_RIGHT;
+        
+        gtk_layer_set_margin(GTK_WINDOW(native), edge, value);
     }
 
     private:

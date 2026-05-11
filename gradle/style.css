@@ -1,7 +1,13 @@
 .panel {
-    background: #12151A;
+    background: #1d222c;
 
-    border-radius: 12px;
-
+    border-radius: 0px;
+    margin: 12px;
+    min-height: 45px;
     color: white;
+}
+
+.clocklabel {
+    font-family: "Inter";
+    font-size: 20px;
 }
