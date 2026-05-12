@@ -117,13 +117,14 @@ public:
         }
 
         // keyboard mode
-        if (
-            properties.kb_mode == "none"
-        ) {
-            gtk_layer_set_keyboard_mode(
-                window,
-                GTK_LAYER_SHELL_KEYBOARD_MODE_NONE
-            );
+        if (properties.kb_mode == "none") {
+            gtk_layer_set_keyboard_mode(window, GTK_LAYER_SHELL_KEYBOARD_MODE_NONE);
+        }
+        else if (properties.kb_mode == "exclusive") {
+            gtk_layer_set_keyboard_mode(window, GTK_LAYER_SHELL_KEYBOARD_MODE_EXCLUSIVE);
+        }
+        else if (properties.kb_mode == "on-demand") {
+            gtk_layer_set_keyboard_mode(window, GTK_LAYER_SHELL_KEYBOARD_MODE_ON_DEMAND);
         }
 
         // child
