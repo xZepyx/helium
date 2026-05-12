@@ -59,6 +59,21 @@ PYBIND11_MODULE(helium, m) {
         }), py::arg("label") = "")
         .def("on_click", &Button::on_click, py::arg("callback"));
 
+    py::class_<Overlay, Widget>(t, "Overlay")
+        .def(py::init<>())
+        .def("set_child", &Overlay::set_child)
+        .def("add_overlay", &Overlay::add_overlay);
+
+    py::class_<ScrolledWindow, Widget>(t, "ScrolledWindow")
+        .def(py::init<>())
+        .def("set_child", &ScrolledWindow::set_child)
+        .def("set_policy", &ScrolledWindow::set_policy);
+
+    py::class_<EventBox, Widget>(t, "EventBox")
+        .def(py::init<>())
+        .def("set_child", &EventBox::set_child)
+        .def("on_hover", &EventBox::on_hover);
+
     py::class_<Box, Widget>(t, "Box")
         .def(py::init([](std::string orientation, int spacing, std::vector<Widget*> children, std::string halign, std::string valign, bool hexpand, bool vexpand) {
             BoxProperties props{orientation, spacing, children, halign, valign, hexpand, vexpand};
