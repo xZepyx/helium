@@ -69,6 +69,7 @@ PYBIND11_MODULE(helium, m) {
         .def("show", &Widget::show)
         .def("add_css_class", &Widget::add_css_class)
         .def("remove_css_class", &Widget::remove_css_class)
+        .def("set_style", &Widget::set_style, py::arg("css_style"))
         .def("connect", &Widget::connect_signal, py::arg("signal_name"), py::arg("callback"))
         .def("set_hexpand", [](Widget& w, bool expand) { gtk_widget_set_hexpand(w.get_native(), expand); })
         .def("set_vexpand", [](Widget& w, bool expand) { gtk_widget_set_vexpand(w.get_native(), expand); });
