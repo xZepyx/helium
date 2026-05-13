@@ -12,7 +12,7 @@
 #include "../types/image.hpp"
 #include "../types/eventbox.hpp"
 #include "../types/entry.hpp"
-#include "../types/material_symbol.hpp"
+#include "../types/materialsymbol.hpp"
 #include "../types/overlay.hpp"
 #include "../types/scrolledwindow.hpp"
 #include "../managers/cssmanager.hpp"

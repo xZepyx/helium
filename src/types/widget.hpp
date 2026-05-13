@@ -6,6 +6,7 @@
 class Widget {
 protected:
     GtkWidget* native;
+    GtkCssProvider* inline_provider = nullptr;
 
 public:
     Widget(GtkWidget* widget)
@@ -18,7 +19,7 @@ public:
     }
 
     void show() {
-        gtk_widget_show(native);
+        gtk_widget_set_visible(native, TRUE);
     }
 
     void add_css_class(const std::string& class_name) {
@@ -36,24 +37,32 @@ public:
     }
 
     void set_style(const std::string& css_style) {
-        GtkStyleContext* context = gtk_widget_get_style_context(native);
-
-        // If we already have an inline provider, remove it first to update so it won't fuck up
         if (inline_provider != nullptr) {
-            gtk_style_context_remove_provider(context, GTK_STYLE_PROVIDER(inline_provider));
+            gtk_style_context_remove_provider_for_display(
+                gdk_display_get_default(),
+                GTK_STYLE_PROVIDER(inline_provider)
+            );
             g_object_unref(inline_provider);
         }
 
         inline_provider = gtk_css_provider_new();
         
-        // We wrap the user's string in a wildcard selector to target this specific widget
-        std::string wrapped_css = "* { " + css_style + " }";
+        // 1. Give this specific widget a unique ID based on its pointer address
+        std::string widget_id = "widget_" + std::to_string(reinterpret_cast<uintptr_t>(native));
+        gtk_widget_set_name(native, widget_id.c_str());
+
+        // 2. Target ONLY this ID in the CSS string
+        // This prevents the font-family from leaking to other widgets
+        std::string wrapped_css = "#" + widget_id + " { " + css_style + " }";
         
         gtk_css_provider_load_from_data(inline_provider, wrapped_css.c_str(), -1);
-        
-        // Use priority_user to override the external stylesheet
-        gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(inline_provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
-    } 
+
+        gtk_style_context_add_provider_for_display(
+            gdk_display_get_default(),
+            GTK_STYLE_PROVIDER(inline_provider),
+            GTK_STYLE_PROVIDER_PRIORITY_USER
+        );
+    }
 
     void connect_signal(const std::string& signal_name, std::function<void()> callback) {
             // We heap-allocate the function so it persists until the signal is disconnected

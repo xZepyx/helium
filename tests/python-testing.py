@@ -1,12 +1,11 @@
 import json
 import helium
-from helium.types import Panel, Box, CenterBox, Label, Button
+from helium.types import Panel, Box, CenterBox, Label, Button, MaterialSymbol
 from helium.compositor.hyprland import hyprland_dispatch, get_active_workspace
 
 # 1. Initialize the library
 helium.init()
 
-# 2. Load CSS (Ensure this path is correct for your Arch setup)
 helium.load_css("tests/style.css")
 
 class WorkspaceIndicator(Box):
@@ -63,9 +62,23 @@ class TopBar(Panel):
 
         self.layout = CenterBox()
         self.workspaces = WorkspaceIndicator()
+        
+        # 1. Create a container for the right-side status icons
+        self.status_area = Box(orientation="horizontal", spacing=12)
+        
+        self.bluetoothIndicator = MaterialSymbol(symbol="bluetooth")
+        self.networkIndicator = MaterialSymbol(symbol="network_wifi_3_bar")
 
-        # Set center only as per your variant
+        # 2. Add individual indicators to the status container
+        self.status_area.add(self.networkIndicator)
+        self.status_area.add(self.bluetoothIndicator)
+        self.networkIndicator.add_css_class("nt")
+        self.bluetoothIndicator.add_css_class("bt")
+        self.status_area.add_css_class("status-area")
+
+        # 3. Set the container as the end-child of the CenterBox
         self.layout.set_center(self.workspaces)
+        self.layout.set_end(self.status_area)
 
         self.set_child(self.layout)
         self.show()

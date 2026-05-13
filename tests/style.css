@@ -29,3 +29,15 @@ window {
     background-color: #B3CAD4;
     color: #11111b;
 }
+
+.bt {
+    color: white;
+}
+
+.nt {
+    color: white;
+}
+
+.status-area {
+    margin-right: 10px;
+}

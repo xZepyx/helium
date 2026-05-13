@@ -14,7 +14,6 @@ public:
             "font-size: " + std::to_string(size) + "px; "
             "font-variation-settings: 'FILL' " + variations + ";";
         
-        // 3. Call the base Widget method we just created!
         set_style(icon_style);
     }
 };
