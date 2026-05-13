@@ -35,6 +35,26 @@ public:
         );
     }
 
+    void set_style(const std::string& css_style) {
+        GtkStyleContext* context = gtk_widget_get_style_context(native);
+
+        // If we already have an inline provider, remove it first to update so it won't fuck up
+        if (inline_provider != nullptr) {
+            gtk_style_context_remove_provider(context, GTK_STYLE_PROVIDER(inline_provider));
+            g_object_unref(inline_provider);
+        }
+
+        inline_provider = gtk_css_provider_new();
+        
+        // We wrap the user's string in a wildcard selector to target this specific widget
+        std::string wrapped_css = "* { " + css_style + " }";
+        
+        gtk_css_provider_load_from_data(inline_provider, wrapped_css.c_str(), -1);
+        
+        // Use priority_user to override the external stylesheet
+        gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(inline_provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    } 
+
     void connect_signal(const std::string& signal_name, std::function<void()> callback) {
             // We heap-allocate the function so it persists until the signal is disconnected
             auto* callback_ptr = new std::function<void()>(callback);
