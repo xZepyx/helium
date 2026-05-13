@@ -1,0 +1,31 @@
+/* The Main Panel */
+window {
+    background-color: #121314;
+}
+
+/* The Workspace Container (The Track) */
+.workspace-pill {
+    background-color: #1F2020;
+    border-radius: 24px;
+    padding: 6px;
+    min-width: 8px;
+    min-height: 8px;
+    margin: 6px;
+}
+
+/* Individual Workspace Circles */
+.ws-button {
+    background: transparent;
+    border: none;
+    color: #939ab7;
+    font-weight: 700;
+    min-width: 8px;
+    min-height: 8px;
+    border-radius: 50%;
+    padding: 0px 11px;
+}
+
+.ws-button.active {
+    background-color: #B3CAD4;
+    color: #11111b;
+}

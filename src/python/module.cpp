@@ -1,6 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <pybind11/functional.h> // Critical for passing Python functions as std::function
+#include <pybind11/functional.h> // for passing Python functions as std::function
 #include <gtk/gtk.h>
 
 #include "../types/widget.hpp"
@@ -10,9 +10,14 @@
 #include "../types/button.hpp"
 #include "../types/centerbox.hpp"
 #include "../types/image.hpp"
+#include "../types/eventbox.hpp"
 #include "../types/entry.hpp"
+#include "../types/material_symbol.hpp"
+#include "../types/overlay.hpp"
+#include "../types/scrolledwindow.hpp"
 #include "../managers/cssmanager.hpp"
 #include "../functions/poll.hpp"
+#include "../compositors/hyprland/hyprland.hpp"
 
 namespace py = pybind11;
 
@@ -35,8 +40,30 @@ PYBIND11_MODULE(helium, m) {
     py::module_ f = m.def_submodule("functions", "Helium functional utilities");
     f.def("Poll", &create_poll, py::arg("ms"), py::arg("callback"));
 
-    // helium.types submodule
-    py::module_ t = m.def_submodule("types", "Helium widget types.");
+    py::module_ t = m.def_submodule("types", "Helium widget types");
+
+    // compositor stuff
+    py::module_ comp = m.def_submodule("compositor", "Compositor specific APIs");
+    py::module_ hypr = comp.def_submodule("hyprland", "Hyprland IPC bindings");
+    
+    hypr.def("hyprland_dispatch", &Hyprland::send_command, 
+             "Send a command to Hyprland IPC", py::arg("command"));
+    
+    hypr.def("get_workspaces", []() { 
+        return Hyprland::send_command("workspaces"); 
+    }, "Get list of workspaces");
+    
+    hypr.def("get_active_workspace", []() { 
+        return Hyprland::send_command("activeworkspace"); 
+    }, "Get the currently focused workspace");
+    
+    hypr.def("get_clients", []() { 
+        return Hyprland::send_command("clients"); 
+    }, "Get list of all open windows");
+    
+    hypr.def("get_monitors", []() { 
+        return Hyprland::send_command("monitors"); 
+    }, "Get list of active monitors");
 
     py::class_<Widget>(t, "Widget")
         .def("show", &Widget::show)
@@ -50,6 +77,12 @@ PYBIND11_MODULE(helium, m) {
         .def(py::init<const std::string&>(), py::arg("label") = "")
         .def("set_label", &Label::set_label)
         .def("get_label", &Label::get_label);
+
+    py::class_<MaterialSymbol, Label>(t, "MaterialSymbol")
+        .def(py::init<std::string, float, bool>(), 
+            py::arg("symbol"), 
+            py::arg("size") = 24.0, 
+            py::arg("fill") = false);
 
     py::class_<Button, Widget>(t, "Button")
         .def(py::init([](std::string label) {
@@ -86,7 +119,8 @@ PYBIND11_MODULE(helium, m) {
         py::arg("valign") = "fill",
         py::arg("hexpand") = false,
         py::arg("vexpand") = false)
-        .def("add", &Box::add);
+        .def("add", &Box::add)
+        .def("clear", &Box::clear);
 
     py::class_<CenterBox, Widget>(t, "CenterBox")
         .def(py::init<>())

@@ -1,48 +1,76 @@
-from helium.types import Panel, Box, Entry, Label
+import json
 import helium
+from helium.types import Panel, Box, CenterBox, Label, Button
+from helium.compositor.hyprland import hyprland_dispatch, get_active_workspace
 
+# 1. Initialize the library
 helium.init()
-helium.load_css("gradle/style.css")
 
-class Launcher(Panel):
+# 2. Load CSS (Ensure this path is correct for your Arch setup)
+helium.load_css("tests/style.css")
+
+class WorkspaceIndicator(Box):
+    def __init__(self):
+        # halign="center" ensures the pill stays compact in the middle
+        super().__init__(orientation="horizontal", spacing=2, halign="center")
+        self.add_css_class("workspace-pill")
+        
+        # 3. Create the buttons ONCE and store them in a list
+        self.buttons = []
+        for i in range(1, 9):
+            btn = Button(label=str(i))
+            btn.add_css_class("ws-button")
+            
+            # Connect the click event once. *args prevents the TypeError.
+            btn.on_click(lambda *args, idx=i: hyprland_dispatch(f"dispatch workspace {idx}"))
+            
+            self.add(btn)
+            self.buttons.append(btn)
+        
+        # Initial state check
+        self.update()
+        
+        # Poll Hyprland every 200ms
+        helium.functions.Poll(200, self.update)
+
+    def update(self):
+        try:
+            # 4. Fetch state without clearing any widgets
+            active_data = json.loads(get_active_workspace())
+            active_id = int(active_data.get("id", 1))
+
+            # 5. Just flip the 'active' class on the existing buttons
+            for i, btn in enumerate(self.buttons, 1):
+                if i == active_id:
+                    btn.add_css_class("active")
+                else:
+                    btn.remove_css_class("active")
+                
+        except Exception as e:
+            print(f"Helium IPC Error: {e}")
+            
+        return True
+
+class TopBar(Panel):
     def __init__(self):
         super().__init__(
-            namespace="helium-launcher",
-            # Empty anchor centers the window on most compositors
-            anchor=[], 
-            width=500,
-            height=60,
-            exclusive=False,
-            layer="overlay",
-            kb_mode="exclusive" # Grabs keyboard focus immediately
+            namespace="helium-bar",
+            anchor=["top", "left", "right"],
+            height=55,
+            exclusive=True,
+            layer="top"
         )
 
-        # 1. Setup the Input Field
-        self.entry = Entry()
-        self.entry.add_css_class("launcher-input")
-        
-        # Connect the 'Enter' key press
-        self.entry.on_activate(self.on_submit)
+        self.layout = CenterBox()
+        self.workspaces = WorkspaceIndicator()
 
-        # 2. Layout
-        self.main_container = Box(
-            orientation="vertical",
-            children=[self.entry],
-        )
-        self.main_container.add_css_class("launcher-window")
+        # Set center only as per your variant
+        self.layout.set_center(self.workspaces)
 
-        self.set_child(self.main_container)
+        self.set_child(self.layout)
         self.show()
 
-    def on_submit(self):
-        query = self.entry.get_text()
-        print(f"User searched for: {query}")
-        
-        # Clear text after search
-        self.entry.set_text("")
-        
-        # You could add logic here to close the launcher or spawn a process
-        # self.hide() 
-
-Launcher()
+# Create the bar and run
+TopBar()
+print("Helium Shell initialized. Running main loop...")
 helium.run()

@@ -32,6 +32,15 @@ public:
 
     void add(Widget* child) { gtk_box_append(GTK_BOX(native), child->get_native()); }
 
+    void clear() {
+        GtkWidget* child = gtk_widget_get_first_child(native);
+        while (child != nullptr) {
+            GtkWidget* next = gtk_widget_get_next_sibling(child);
+            gtk_box_remove(GTK_BOX(native), child);
+            child = next;
+        }
+    }
+
 private:
     void set_align(const std::string& align, bool horizontal) {
         GtkAlign g_align = GTK_ALIGN_FILL;
