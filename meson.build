@@ -22,6 +22,17 @@ executable(
     ]
 )
 
+executable(
+    'test_helium',
+
+    'tests/test_helium.cpp',
+
+    dependencies: [
+        gtk,
+        layer_shell
+    ]
+)
+
 python = import('python').find_installation()
 
 python.extension_module(

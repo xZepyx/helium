@@ -2,6 +2,7 @@
 
 #include <gtk/gtk.h>
 #include <functional>
+#include <string>
 
 class Widget {
 protected:
@@ -10,9 +11,13 @@ protected:
 
 public:
     Widget(GtkWidget* widget)
-        : native(widget) {}
+        : native(widget) {
+        if (native) g_object_ref_sink(native);
+    }
 
-    virtual ~Widget() = default;
+    virtual ~Widget() {
+        if (native) g_object_unref(native);
+    }
 
     GtkWidget* get_native() {
         return native;
@@ -84,4 +89,11 @@ public:
         }
 
     virtual void set_child(Widget* child) {} // setchild method
+
+protected:
+    void set_native(GtkWidget* widget) {
+        if (native) g_object_unref(native);
+        native = widget;
+        if (native) g_object_ref_sink(native);
+    }
 };

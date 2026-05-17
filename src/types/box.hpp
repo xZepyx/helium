@@ -20,6 +20,7 @@ public:
     Box(const BoxProperties& props) : Widget(nullptr) {
         GtkOrientation orientation = (props.orientation == "vertical") ? GTK_ORIENTATION_VERTICAL : GTK_ORIENTATION_HORIZONTAL;
         native = gtk_box_new(orientation, props.spacing);
+        g_object_ref_sink(native);
 
         set_align(props.halign, true);
         set_align(props.valign, false);
@@ -31,6 +32,9 @@ public:
     }
 
     void add(Widget* child) { gtk_box_append(GTK_BOX(native), child->get_native()); }
+    void append(Widget* child) { gtk_box_append(GTK_BOX(native), child->get_native()); }
+    void prepend(Widget* child) { gtk_box_prepend(GTK_BOX(native), child->get_native()); }
+    void remove(Widget* child) { gtk_box_remove(GTK_BOX(native), child->get_native()); }
 
     void clear() {
         GtkWidget* child = gtk_widget_get_first_child(native);
