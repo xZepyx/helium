@@ -104,7 +104,7 @@ def update_workspaces():
             btn = Button(label=str(ws["id"]))
             btn.add_css_class("workspace")
             wid = ws["id"]
-            btn.on_click(lambda _, idx=wid: hyprland_dispatch(f"dispatch workspace {idx}"))
+            btn.on_click(lambda idx=wid: hyprland_dispatch(f"dispatch workspace {idx}"))
             if ws["id"] == active_id:
                 btn.add_css_class("active")
             ws_box.add(btn)
@@ -150,7 +150,7 @@ def update_workspaces():
             btn = Button(label=str(ws["id"]))
             btn.add_css_class("workspace")
             wid = ws["id"]
-            btn.on_click(lambda _, idx=wid: hyprland_dispatch(f"dispatch workspace {idx}"))
+            btn.on_click(lambda idx=wid: hyprland_dispatch(f"dispatch workspace {idx}"))
             if ws["id"] == active_id:
                 btn.add_css_class("active")
             ws_box.add(btn)

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helium — helium</title>
+<script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.className='theme-'+t;})();</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topbar">
+<div class="topbar-left">
+
+<a href="index.html" class="logo">Helium</a>
+</div>
+<div class="topbar-center">
+<div class="nav-links">
+<a href="index.html" active>Home</a>
+<a href="docs.html">Docs</a>
+<a href="about.html">About</a>
+<a href="https://github.com/xZepyx/helium" class="nav-gh" target="_blank">GitHub</a>
+</div>
+</div>
+<div class="topbar-right">
+<div class="theme-dots">
+<span class="theme-dot" data-theme="dark" style="background:#7e9cd8" title="Dark"></span>
+<span class="theme-dot" data-theme="cream" style="background:#a2b29f" title="Cream"></span>
+<span class="theme-dot" data-theme="forest" style="background:#609966" title="Forest"></span>
+</div>
+</div>
+</nav>
+
+<div class="wrapper wrapper-center">
+<main class="content">
+
+<div class="hero">
+<h1 class="brand"><span class="hl">Helium</span></h1>
+<p class="subtitle">Build desktop shell widgets with <span class="hl">Python</span> and <span class="hl">GTK4</span></p>
+<div class="actions">
+<a href="docs.html" class="btn btn-primary">Read the docs</a>
+<a href="https://github.com/xZepyx/helium" class="btn btn-outline">GitHub</a>
+</div>
+
+<h2>What you can build</h2>
+<div class="cards">
+<div class="card">
+<span class="icon">⬡</span>
+<h3>Bars & Panels</h3>
+<p>Top bars, bottom panels, side docks — all with layer-shell exclusivity so nothing overlaps.</p>
+</div>
+<div class="card">
+<span class="icon">◉</span>
+<h3>Widgets</h3>
+<p>Labels, buttons, sliders, switches, dropdowns, calendars, and 30+ more GTK widgets.</p>
+</div>
+<div class="card">
+<span class="icon">◎</span>
+<h3>System Services</h3>
+<p>Audio, network, notifications, MPRIS media players, Bluetooth, backlight, wallpapers, and more.</p>
+</div>
+<div class="card">
+<span class="icon">◈</span>
+<h3>Compositor IPC</h3>
+<p>Built-in Hyprland integration — workspace switching, window tracking, event listening.</p>
+</div>
+</div>
+
+<h2>Quick start</h2>
+<div class="code-block-wrap"><pre><code>import helium
+from helium.types import Window, Label
+
+helium.init()
+
+win = Window(
+    namespace="hello",
+    anchor=["left", "top", "right"],
+    exclusivity="exclusive",
+)
+win.set_child(Label("hello world"))
+win.show()
+
+helium.run()</code></pre></div>
+<p style="color:var(--on-surface-dim)">Save as <code>bar.py</code> and run with <code>PYTHONPATH=builddir python3 bar.py</code>.</p>
+
+<h2>Project structure</h2>
+<div class="feature-grid">
+<a href="introduction.html">Introduction & Tutorial</a>
+<a href="compositor.html">Hyprland IPC</a>
+<a href="managers.html">WindowManager / CSS</a>
+<a href="docs.html">All Types (37)</a>
+<a href="docs.html">All Services (11)</a>
+</div>
+</div>
+</main>
+</div>
+
+<footer class="footer">
+helium &middot; built with python and gtk4
+</footer>
+
+<script>
+
+document.querySelectorAll('.code-block-wrap').forEach(function(wrap) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+        var code = wrap.querySelector('code');
+        navigator.clipboard.writeText(code.textContent).then(function() {
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        });
+    });
+    wrap.appendChild(btn);
+});
+
+var saved = localStorage.getItem('theme') || 'dark';
+document.querySelectorAll('.theme-dot').forEach(function(dot) {
+    dot.addEventListener('click', function() {
+        var theme = this.dataset.theme;
+        document.documentElement.className = 'theme-' + theme;
+        localStorage.setItem('theme', theme);
+        document.querySelectorAll('.theme-dot').forEach(function(d) { d.classList.remove('active'); });
+        this.classList.add('active');
+    });
+    if (dot.dataset.theme === saved) dot.classList.add('active');
+});
+
+</script>
+
+</body>
+</html>

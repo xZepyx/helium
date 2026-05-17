@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>types/Window — helium</title>
+<script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.className='theme-'+t;})();</script>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topbar">
+<div class="topbar-left">
+<button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<a href="../index.html" class="logo">Helium</a>
+</div>
+<div class="topbar-center">
+<div class="nav-links">
+<a href="../index.html">Home</a>
+<a href="../docs.html" active>Docs</a>
+<a href="../about.html">About</a>
+<a href="https://github.com/xZepyx/helium" class="nav-gh" target="_blank">GitHub</a>
+</div>
+</div>
+<div class="topbar-right">
+<div class="theme-dots">
+<span class="theme-dot" data-theme="dark" style="background:#7e9cd8" title="Dark"></span>
+<span class="theme-dot" data-theme="cream" style="background:#a2b29f" title="Cream"></span>
+<span class="theme-dot" data-theme="forest" style="background:#609966" title="Forest"></span>
+</div>
+</div>
+</nav>
+
+<div class="wrapper">
+<aside class="sidebar">
+<div class="sidebar-section"><div class="heading">Getting Started</div>
+<a href="../introduction.html" class="nav-link">Introduction</a>
+<a href="../compositor.html" class="nav-link">Compositor</a>
+<a href="../managers.html" class="nav-link">Managers</a>
+</div>
+<div class="sidebar-section"><div class="heading">Types</div>
+<a href="arrow.html" class="nav-link">Arrow</a>
+<a href="arrowbutton.html" class="nav-link">Arrowbutton</a>
+<a href="box.html" class="nav-link">Box</a>
+<a href="button.html" class="nav-link">Button</a>
+<a href="calendar.html" class="nav-link">Calendar</a>
+<a href="centerbox.html" class="nav-link">Centerbox</a>
+<a href="checkbutton.html" class="nav-link">Checkbutton</a>
+<a href="corner.html" class="nav-link">Corner</a>
+<a href="dropdown.html" class="nav-link">Dropdown</a>
+<a href="entry.html" class="nav-link">Entry</a>
+<a href="eventbox.html" class="nav-link">Eventbox</a>
+<a href="fixed.html" class="nav-link">Fixed</a>
+<a href="grid.html" class="nav-link">Grid</a>
+<a href="headerbar.html" class="nav-link">Headerbar</a>
+<a href="icon.html" class="nav-link">Icon</a>
+<a href="image.html" class="nav-link">Image</a>
+<a href="label.html" class="nav-link">Label</a>
+<a href="listbox.html" class="nav-link">Listbox</a>
+<a href="listboxrow.html" class="nav-link">Listboxrow</a>
+<a href="materialsymbol.html" class="nav-link">Materialsymbol</a>
+<a href="overlay.html" class="nav-link">Overlay</a>
+<a href="panel.html" class="nav-link">Panel</a>
+<a href="picture.html" class="nav-link">Picture</a>
+<a href="popovermenu.html" class="nav-link">Popovermenu</a>
+<a href="regularwindow.html" class="nav-link">Regularwindow</a>
+<a href="revealer.html" class="nav-link">Revealer</a>
+<a href="revealerwindow.html" class="nav-link">Revealerwindow</a>
+<a href="scale.html" class="nav-link">Scale</a>
+<a href="scrolledwindow.html" class="nav-link">Scrolledwindow</a>
+<a href="separator.html" class="nav-link">Separator</a>
+<a href="spinbutton.html" class="nav-link">Spinbutton</a>
+<a href="stack.html" class="nav-link">Stack</a>
+<a href="stackswitcher.html" class="nav-link">Stackswitcher</a>
+<a href="switch.html" class="nav-link">Switch</a>
+<a href="togglebutton.html" class="nav-link">Togglebutton</a>
+<a href="widget.html" class="nav-link">Widget</a>
+<a href="window.html" class="nav-link active">Window</a>
+</div>
+<div class="sidebar-section"><div class="heading">Services</div>
+<a href="../services/applicationservice.html" class="nav-link">Applicationservice</a>
+<a href="../services/audioservice.html" class="nav-link">Audioservice</a>
+<a href="../services/backlightservice.html" class="nav-link">Backlightservice</a>
+<a href="../services/bluetoothservice.html" class="nav-link">Bluetoothservice</a>
+<a href="../services/hyprlandservice.html" class="nav-link">Hyprlandservice</a>
+<a href="../services/mprisservice.html" class="nav-link">Mprisservice</a>
+<a href="../services/networkservice.html" class="nav-link">Networkservice</a>
+<a href="../services/notificationservice.html" class="nav-link">Notificationservice</a>
+<a href="../services/powerprofilesservice.html" class="nav-link">Powerprofilesservice</a>
+<a href="../services/systemtrayservice.html" class="nav-link">Systemtrayservice</a>
+<a href="../services/wallpaperservice.html" class="nav-link">Wallpaperservice</a>
+</div>
+</aside>
+<main class="content">
+<img src="../assets/types/window.png" alt="window" class="widget-preview">
+<h1 id="window">Window</h1>
+
+<p>A layer-shell window for bars, dashboards, and overlays.</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">from helium.types import Window
+
+win = Window(
+    namespace=&quot;my_window&quot;,
+    monitor=0,
+    anchor=[&quot;left&quot;, &quot;top&quot;, &quot;right&quot;],
+    exclusivity=&quot;exclusive&quot;,
+    layer=&quot;top&quot;,
+    kb_mode=&quot;none&quot;,
+    popup=False,
+    margin_top=0,
+    margin_bottom=0,
+    margin_left=0,
+    margin_right=0,
+    dynamic_input_region=False,
+)
+
+win.set_child(my_widget)
+win.show()</code></pre></div>
+
+<p><strong>anchor</strong>: <code>"left"</code>, <code>"right"</code>, <code>"top"</code>, <code>"bottom"</code> — combine to pin edges.  </p>
+<p><strong>exclusivity</strong>: <code>"exclusive"</code> reserves space, <code>"none"</code> allows overlap.  </p>
+<p><strong>layer</strong>: <code>"background"</code>, <code>"bottom"</code>, <code>"top"</code>, <code>"overlay"</code>.  </p>
+<p><strong>kb_mode</strong>: <code>"none"</code>, <code>"exclusive"</code>, <code>"on-demand"</code>.</p>
+
+<h2 id="constructor">Constructor</h2>
+
+<p><code>Window(namespace: str, monitor: int = 0, anchor: list = [], exclusivity: str = "normal", layer: str = "top", kb_mode: str = "none", popup: bool = False, margin_top: int = 0, margin_bottom: int = 0, margin_left: int = 0, margin_right: int = 0, dynamic_input_region: bool = False)</code></p>
+
+<h2 id="methods">Methods</h2>
+
+<table>
+<tr>
+  <th>Method</th>
+  <th>What it does</th>
+</tr>
+<tr>
+  <td><code>set_child(child)</code></td>
+  <td>Sets the child widget</td>
+</tr>
+<tr>
+  <td><code>get_namespace()</code></td>
+  <td>Returns namespace</td>
+</tr>
+<tr>
+  <td><code>set_monitor(v)</code></td>
+  <td>Moves to a monitor</td>
+</tr>
+<tr>
+  <td><code>get_monitor()</code></td>
+  <td>Returns monitor index</td>
+</tr>
+<tr>
+  <td><code>set_layer(v)</code></td>
+  <td>Changes layer</td>
+</tr>
+<tr>
+  <td><code>get_layer()</code></td>
+  <td>Returns layer</td>
+</tr>
+<tr>
+  <td><code>set_kb_mode(v)</code></td>
+  <td>Changes keyboard mode</td>
+</tr>
+<tr>
+  <td><code>get_kb_mode()</code></td>
+  <td>Returns keyboard mode</td>
+</tr>
+<tr>
+  <td><code>set_exclusivity(v)</code></td>
+  <td>Changes exclusivity</td>
+</tr>
+<tr>
+  <td><code>get_exclusivity()</code></td>
+  <td>Returns exclusivity</td>
+</tr>
+<tr>
+  <td><code>set_popup(v)</code></td>
+  <td>Sets popup flag</td>
+</tr>
+<tr>
+  <td><code>get_popup()</code></td>
+  <td>Returns popup flag</td>
+</tr>
+<tr>
+  <td><code>set_anchor(anchors)</code></td>
+  <td>Sets edge anchors</td>
+</tr>
+<tr>
+  <td><code>get_anchor()</code></td>
+  <td>Returns anchors</td>
+</tr>
+<tr>
+  <td><code>set_margin(side, value)</code></td>
+  <td>Sets margin per side</td>
+</tr>
+<tr>
+  <td><code>set_input_width(v)</code></td>
+  <td>Input region width</td>
+</tr>
+<tr>
+  <td><code>set_input_height(v)</code></td>
+  <td>Input region height</td>
+</tr>
+<tr>
+  <td><code>get_input_width()</code></td>
+  <td>Returns input width</td>
+</tr>
+<tr>
+  <td><code>get_input_height()</code></td>
+  <td>Returns input height</td>
+</tr>
+<tr>
+  <td><code>set_dynamic_input_region(v)</code></td>
+  <td>Enables dynamic input</td>
+</tr>
+<tr>
+  <td><code>get_dynamic_input_region()</code></td>
+  <td>Returns dynamic input flag</td>
+</tr>
+</table>
+
+</main>
+</div>
+
+<footer class="footer">
+helium &middot; built with python and gtk4
+</footer>
+
+<script>
+
+document.querySelectorAll('.nav-link').forEach(function(el) {
+    el.addEventListener('click', function() {
+        document.querySelectorAll('.nav-link').forEach(function(l) { l.classList.remove('active'); });
+        this.classList.add('active');
+    });
+});
+
+document.querySelectorAll('.code-block-wrap').forEach(function(wrap) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+        var code = wrap.querySelector('code');
+        navigator.clipboard.writeText(code.textContent).then(function() {
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        });
+    });
+    wrap.appendChild(btn);
+});
+
+var saved = localStorage.getItem('theme') || 'dark';
+document.querySelectorAll('.theme-dot').forEach(function(dot) {
+    dot.addEventListener('click', function() {
+        var theme = this.dataset.theme;
+        document.documentElement.className = 'theme-' + theme;
+        localStorage.setItem('theme', theme);
+        document.querySelectorAll('.theme-dot').forEach(function(d) { d.classList.remove('active'); });
+        this.classList.add('active');
+    });
+    if (dot.dataset.theme === saved) dot.classList.add('active');
+});
+
+</script>
+
+</body>
+</html>

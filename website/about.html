@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About — helium</title>
+<script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.className='theme-'+t;})();</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topbar">
+<div class="topbar-left">
+
+<a href="index.html" class="logo">Helium</a>
+</div>
+<div class="topbar-center">
+<div class="nav-links">
+<a href="index.html">Home</a>
+<a href="docs.html">Docs</a>
+<a href="about.html" active>About</a>
+<a href="https://github.com/xZepyx/helium" class="nav-gh" target="_blank">GitHub</a>
+</div>
+</div>
+<div class="topbar-right">
+<div class="theme-dots">
+<span class="theme-dot" data-theme="dark" style="background:#7e9cd8" title="Dark"></span>
+<span class="theme-dot" data-theme="cream" style="background:#a2b29f" title="Cream"></span>
+<span class="theme-dot" data-theme="forest" style="background:#609966" title="Forest"></span>
+</div>
+</div>
+</nav>
+
+<div class="wrapper wrapper-center">
+<main class="content">
+
+<div class="about-profile">
+<img src="assets/pfp.jpg" alt="Profile picture" class="pfp">
+<p class="bio">Hey! I'm the developer of helium. Find more about me on <a href="https://github.com/xZepyx">GitHub</a>.</p>
+</div>
+
+<div class="about-card">
+<div class="row">
+<div class="label">GitHub</div>
+<div class="value"><a href="https://github.com/xZepyx" target="_blank">@xZepyx</a></div>
+</div>
+<div class="row">
+<div class="label">Reddit</div>
+<div class="value">u/ArchPowerUser</div>
+</div>
+<div class="row">
+<div class="label">Discord</div>
+<div class="value">@zepyx</div>
+</div>
+<div class="row">
+<div class="label">Email</div>
+<div class="value">zepyxunderscore@gmail.com</div>
+</div>
+<div class="row">
+<div class="label">X / Twitter</div>
+<div class="value">@ZepyxUnderscore</div>
+</div>
+</div>
+
+
+</main>
+</div>
+
+<footer class="footer">
+helium &middot; built with python and gtk4
+</footer>
+
+<script>
+
+document.querySelectorAll('.code-block-wrap').forEach(function(wrap) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+        var code = wrap.querySelector('code');
+        navigator.clipboard.writeText(code.textContent).then(function() {
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        });
+    });
+    wrap.appendChild(btn);
+});
+
+var saved = localStorage.getItem('theme') || 'dark';
+document.querySelectorAll('.theme-dot').forEach(function(dot) {
+    dot.addEventListener('click', function() {
+        var theme = this.dataset.theme;
+        document.documentElement.className = 'theme-' + theme;
+        localStorage.setItem('theme', theme);
+        document.querySelectorAll('.theme-dot').forEach(function(d) { d.classList.remove('active'); });
+        this.classList.add('active');
+    });
+    if (dot.dataset.theme === saved) dot.classList.add('active');
+});
+
+</script>
+
+</body>
+</html>

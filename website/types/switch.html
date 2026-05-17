@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>types/Switch — helium</title>
+<script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.className='theme-'+t;})();</script>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topbar">
+<div class="topbar-left">
+<button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<a href="../index.html" class="logo">Helium</a>
+</div>
+<div class="topbar-center">
+<div class="nav-links">
+<a href="../index.html">Home</a>
+<a href="../docs.html" active>Docs</a>
+<a href="../about.html">About</a>
+<a href="https://github.com/xZepyx/helium" class="nav-gh" target="_blank">GitHub</a>
+</div>
+</div>
+<div class="topbar-right">
+<div class="theme-dots">
+<span class="theme-dot" data-theme="dark" style="background:#7e9cd8" title="Dark"></span>
+<span class="theme-dot" data-theme="cream" style="background:#a2b29f" title="Cream"></span>
+<span class="theme-dot" data-theme="forest" style="background:#609966" title="Forest"></span>
+</div>
+</div>
+</nav>
+
+<div class="wrapper">
+<aside class="sidebar">
+<div class="sidebar-section"><div class="heading">Getting Started</div>
+<a href="../introduction.html" class="nav-link">Introduction</a>
+<a href="../compositor.html" class="nav-link">Compositor</a>
+<a href="../managers.html" class="nav-link">Managers</a>
+</div>
+<div class="sidebar-section"><div class="heading">Types</div>
+<a href="arrow.html" class="nav-link">Arrow</a>
+<a href="arrowbutton.html" class="nav-link">Arrowbutton</a>
+<a href="box.html" class="nav-link">Box</a>
+<a href="button.html" class="nav-link">Button</a>
+<a href="calendar.html" class="nav-link">Calendar</a>
+<a href="centerbox.html" class="nav-link">Centerbox</a>
+<a href="checkbutton.html" class="nav-link">Checkbutton</a>
+<a href="corner.html" class="nav-link">Corner</a>
+<a href="dropdown.html" class="nav-link">Dropdown</a>
+<a href="entry.html" class="nav-link">Entry</a>
+<a href="eventbox.html" class="nav-link">Eventbox</a>
+<a href="fixed.html" class="nav-link">Fixed</a>
+<a href="grid.html" class="nav-link">Grid</a>
+<a href="headerbar.html" class="nav-link">Headerbar</a>
+<a href="icon.html" class="nav-link">Icon</a>
+<a href="image.html" class="nav-link">Image</a>
+<a href="label.html" class="nav-link">Label</a>
+<a href="listbox.html" class="nav-link">Listbox</a>
+<a href="listboxrow.html" class="nav-link">Listboxrow</a>
+<a href="materialsymbol.html" class="nav-link">Materialsymbol</a>
+<a href="overlay.html" class="nav-link">Overlay</a>
+<a href="panel.html" class="nav-link">Panel</a>
+<a href="picture.html" class="nav-link">Picture</a>
+<a href="popovermenu.html" class="nav-link">Popovermenu</a>
+<a href="regularwindow.html" class="nav-link">Regularwindow</a>
+<a href="revealer.html" class="nav-link">Revealer</a>
+<a href="revealerwindow.html" class="nav-link">Revealerwindow</a>
+<a href="scale.html" class="nav-link">Scale</a>
+<a href="scrolledwindow.html" class="nav-link">Scrolledwindow</a>
+<a href="separator.html" class="nav-link">Separator</a>
+<a href="spinbutton.html" class="nav-link">Spinbutton</a>
+<a href="stack.html" class="nav-link">Stack</a>
+<a href="stackswitcher.html" class="nav-link">Stackswitcher</a>
+<a href="switch.html" class="nav-link active">Switch</a>
+<a href="togglebutton.html" class="nav-link">Togglebutton</a>
+<a href="widget.html" class="nav-link">Widget</a>
+<a href="window.html" class="nav-link">Window</a>
+</div>
+<div class="sidebar-section"><div class="heading">Services</div>
+<a href="../services/applicationservice.html" class="nav-link">Applicationservice</a>
+<a href="../services/audioservice.html" class="nav-link">Audioservice</a>
+<a href="../services/backlightservice.html" class="nav-link">Backlightservice</a>
+<a href="../services/bluetoothservice.html" class="nav-link">Bluetoothservice</a>
+<a href="../services/hyprlandservice.html" class="nav-link">Hyprlandservice</a>
+<a href="../services/mprisservice.html" class="nav-link">Mprisservice</a>
+<a href="../services/networkservice.html" class="nav-link">Networkservice</a>
+<a href="../services/notificationservice.html" class="nav-link">Notificationservice</a>
+<a href="../services/powerprofilesservice.html" class="nav-link">Powerprofilesservice</a>
+<a href="../services/systemtrayservice.html" class="nav-link">Systemtrayservice</a>
+<a href="../services/wallpaperservice.html" class="nav-link">Wallpaperservice</a>
+</div>
+</aside>
+<main class="content">
+<img src="../assets/types/switch.png" alt="switch" class="widget-preview">
+<h1 id="switch">Switch</h1>
+
+<p>An on/off toggle.</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">from helium.types import Switch
+
+sw = Switch(active=True)
+
+def on_change(state):
+    print(f&quot;switch is {&#x27;on&#x27; if state else &#x27;off&#x27;}&quot;)
+
+sw.on_change(on_change)
+sw.set_active(False)
+state = sw.get_active()</code></pre></div>
+
+<h2 id="constructor">Constructor</h2>
+
+<p><code>Switch(active: bool = False)</code></p>
+
+<h2 id="methods">Methods</h2>
+
+<table>
+<tr>
+  <th>Method</th>
+  <th>What it does</th>
+</tr>
+<tr>
+  <td><code>on_change(callback)</code></td>
+  <td>Fires with the new state</td>
+</tr>
+<tr>
+  <td><code>set_active(v)</code></td>
+  <td>Sets the state</td>
+</tr>
+<tr>
+  <td><code>get_active()</code></td>
+  <td>Returns the state</td>
+</tr>
+</table>
+
+</main>
+</div>
+
+<footer class="footer">
+helium &middot; built with python and gtk4
+</footer>
+
+<script>
+
+document.querySelectorAll('.nav-link').forEach(function(el) {
+    el.addEventListener('click', function() {
+        document.querySelectorAll('.nav-link').forEach(function(l) { l.classList.remove('active'); });
+        this.classList.add('active');
+    });
+});
+
+document.querySelectorAll('.code-block-wrap').forEach(function(wrap) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+        var code = wrap.querySelector('code');
+        navigator.clipboard.writeText(code.textContent).then(function() {
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        });
+    });
+    wrap.appendChild(btn);
+});
+
+var saved = localStorage.getItem('theme') || 'dark';
+document.querySelectorAll('.theme-dot').forEach(function(dot) {
+    dot.addEventListener('click', function() {
+        var theme = this.dataset.theme;
+        document.documentElement.className = 'theme-' + theme;
+        localStorage.setItem('theme', theme);
+        document.querySelectorAll('.theme-dot').forEach(function(d) { d.classList.remove('active'); });
+        this.classList.add('active');
+    });
+    if (dot.dataset.theme === saved) dot.classList.add('active');
+});
+
+</script>
+
+</body>
+</html>

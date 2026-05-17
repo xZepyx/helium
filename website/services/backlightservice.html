@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>services/Backlightservice — helium</title>
+<script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.className='theme-'+t;})();</script>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="topbar">
+<div class="topbar-left">
+<button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<a href="../index.html" class="logo">Helium</a>
+</div>
+<div class="topbar-center">
+<div class="nav-links">
+<a href="../index.html">Home</a>
+<a href="../docs.html" active>Docs</a>
+<a href="../about.html">About</a>
+<a href="https://github.com/xZepyx/helium" class="nav-gh" target="_blank">GitHub</a>
+</div>
+</div>
+<div class="topbar-right">
+<div class="theme-dots">
+<span class="theme-dot" data-theme="dark" style="background:#7e9cd8" title="Dark"></span>
+<span class="theme-dot" data-theme="cream" style="background:#a2b29f" title="Cream"></span>
+<span class="theme-dot" data-theme="forest" style="background:#609966" title="Forest"></span>
+</div>
+</div>
+</nav>
+
+<div class="wrapper">
+<aside class="sidebar">
+<div class="sidebar-section"><div class="heading">Getting Started</div>
+<a href="../introduction.html" class="nav-link">Introduction</a>
+<a href="../compositor.html" class="nav-link">Compositor</a>
+<a href="../managers.html" class="nav-link">Managers</a>
+</div>
+<div class="sidebar-section"><div class="heading">Types</div>
+<a href="../types/arrow.html" class="nav-link">Arrow</a>
+<a href="../types/arrowbutton.html" class="nav-link">Arrowbutton</a>
+<a href="../types/box.html" class="nav-link">Box</a>
+<a href="../types/button.html" class="nav-link">Button</a>
+<a href="../types/calendar.html" class="nav-link">Calendar</a>
+<a href="../types/centerbox.html" class="nav-link">Centerbox</a>
+<a href="../types/checkbutton.html" class="nav-link">Checkbutton</a>
+<a href="../types/corner.html" class="nav-link">Corner</a>
+<a href="../types/dropdown.html" class="nav-link">Dropdown</a>
+<a href="../types/entry.html" class="nav-link">Entry</a>
+<a href="../types/eventbox.html" class="nav-link">Eventbox</a>
+<a href="../types/fixed.html" class="nav-link">Fixed</a>
+<a href="../types/grid.html" class="nav-link">Grid</a>
+<a href="../types/headerbar.html" class="nav-link">Headerbar</a>
+<a href="../types/icon.html" class="nav-link">Icon</a>
+<a href="../types/image.html" class="nav-link">Image</a>
+<a href="../types/label.html" class="nav-link">Label</a>
+<a href="../types/listbox.html" class="nav-link">Listbox</a>
+<a href="../types/listboxrow.html" class="nav-link">Listboxrow</a>
+<a href="../types/materialsymbol.html" class="nav-link">Materialsymbol</a>
+<a href="../types/overlay.html" class="nav-link">Overlay</a>
+<a href="../types/panel.html" class="nav-link">Panel</a>
+<a href="../types/picture.html" class="nav-link">Picture</a>
+<a href="../types/popovermenu.html" class="nav-link">Popovermenu</a>
+<a href="../types/regularwindow.html" class="nav-link">Regularwindow</a>
+<a href="../types/revealer.html" class="nav-link">Revealer</a>
+<a href="../types/revealerwindow.html" class="nav-link">Revealerwindow</a>
+<a href="../types/scale.html" class="nav-link">Scale</a>
+<a href="../types/scrolledwindow.html" class="nav-link">Scrolledwindow</a>
+<a href="../types/separator.html" class="nav-link">Separator</a>
+<a href="../types/spinbutton.html" class="nav-link">Spinbutton</a>
+<a href="../types/stack.html" class="nav-link">Stack</a>
+<a href="../types/stackswitcher.html" class="nav-link">Stackswitcher</a>
+<a href="../types/switch.html" class="nav-link">Switch</a>
+<a href="../types/togglebutton.html" class="nav-link">Togglebutton</a>
+<a href="../types/widget.html" class="nav-link">Widget</a>
+<a href="../types/window.html" class="nav-link">Window</a>
+</div>
+<div class="sidebar-section"><div class="heading">Services</div>
+<a href="applicationservice.html" class="nav-link">Applicationservice</a>
+<a href="audioservice.html" class="nav-link">Audioservice</a>
+<a href="backlightservice.html" class="nav-link active">Backlightservice</a>
+<a href="bluetoothservice.html" class="nav-link">Bluetoothservice</a>
+<a href="hyprlandservice.html" class="nav-link">Hyprlandservice</a>
+<a href="mprisservice.html" class="nav-link">Mprisservice</a>
+<a href="networkservice.html" class="nav-link">Networkservice</a>
+<a href="notificationservice.html" class="nav-link">Notificationservice</a>
+<a href="powerprofilesservice.html" class="nav-link">Powerprofilesservice</a>
+<a href="systemtrayservice.html" class="nav-link">Systemtrayservice</a>
+<a href="wallpaperservice.html" class="nav-link">Wallpaperservice</a>
+</div>
+</aside>
+<main class="content">
+<img src="../assets/services/backlightservice.png" alt="backlightservice" class="widget-preview">
+<h1 id="backlightservice">BacklightService</h1>
+
+<p>Screen brightness control via sysfs.</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">backlight = None
+try:
+    backlight = helium.services.BacklightService.get_default()
+except Exception:
+    pass
+
+if backlight:
+    brightness = backlight.get_brightness()
+    max_bright = backlight.get_max_brightness()
+    pct = backlight.get_brightness_percent()
+    backlight.set_brightness(500)</code></pre></div>
+
+<h2 id="methods">Methods</h2>
+
+<table>
+<tr>
+  <th>Method</th>
+  <th>What it does</th>
+</tr>
+<tr>
+  <td><code>get_default()</code></td>
+  <td>Returns the singleton</td>
+</tr>
+<tr>
+  <td><code>get_brightness()</code></td>
+  <td>Returns current brightness</td>
+</tr>
+<tr>
+  <td><code>set_brightness(v)</code></td>
+  <td>Sets brightness value</td>
+</tr>
+<tr>
+  <td><code>get_max_brightness()</code></td>
+  <td>Returns maximum brightness</td>
+</tr>
+<tr>
+  <td><code>get_brightness_percent()</code></td>
+  <td>Returns brightness as percentage</td>
+</tr>
+</table>
+
+</main>
+</div>
+
+<footer class="footer">
+helium &middot; built with python and gtk4
+</footer>
+
+<script>
+
+document.querySelectorAll('.nav-link').forEach(function(el) {
+    el.addEventListener('click', function() {
+        document.querySelectorAll('.nav-link').forEach(function(l) { l.classList.remove('active'); });
+        this.classList.add('active');
+    });
+});
+
+document.querySelectorAll('.code-block-wrap').forEach(function(wrap) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+        var code = wrap.querySelector('code');
+        navigator.clipboard.writeText(code.textContent).then(function() {
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        });
+    });
+    wrap.appendChild(btn);
+});
+
+var saved = localStorage.getItem('theme') || 'dark';
+document.querySelectorAll('.theme-dot').forEach(function(dot) {
+    dot.addEventListener('click', function() {
+        var theme = this.dataset.theme;
+        document.documentElement.className = 'theme-' + theme;
+        localStorage.setItem('theme', theme);
+        document.querySelectorAll('.theme-dot').forEach(function(d) { d.classList.remove('active'); });
+        this.classList.add('active');
+    });
+    if (dot.dataset.theme === saved) dot.classList.add('active');
+});
+
+</script>
+
+</body>
+</html>
