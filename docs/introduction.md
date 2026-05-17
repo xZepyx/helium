@@ -4,6 +4,10 @@ Helium is a framework for building desktop shell widgets with GTK4 and layer-she
 
 ## Hello World
 
+> [!IMPORTANT]
+> Defaut config file should be at ~/.config/helium named daemon.py
+> This is the entry point of the config.
+
 The smallest possible bar:
 
 ```python
@@ -22,8 +26,6 @@ win.show()
 
 helium.run()
 ```
-
-Run it with `PYTHONPATH=builddir python3 yourfile.py`.
 
 ---
 
@@ -200,7 +202,6 @@ helium.run()
 ```
 
 That's a working bar. You can style it with CSS, add more sections, wire up audio or network services, and build from there.
-
 ---
 
 ## What's in these docs
@@ -213,3 +214,4 @@ That's a working bar. You can style it with CSS, add more sections, wire up audi
 | **compositor.md** | Hyprland IPC functions |
 | **managers.md** | WindowManager, CssManager, IconManager |
 | **utilities.md** | Poll, Timeout, watch_file, unwatch_file |
+
