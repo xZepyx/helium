@@ -1,0 +1,6 @@
+[project]
+name = "helium-web"
+version = "0.0.1"
+
+[build.variants.release]
+strip_symbols = true
