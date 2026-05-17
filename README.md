@@ -14,7 +14,7 @@ Helium lets you build desktop shell widgets with Python/C++ and GTK4. Bars, dash
 * gtk4
 * gtk4-layer-shell
 * pybind11
-* nholmann-json
+* nlohmann-json
 
 ### Install
 ```bash
