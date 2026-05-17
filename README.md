@@ -9,7 +9,18 @@ Helium lets you build desktop shell widgets with Python/C++ and GTK4. Bars, dash
 * System Services Wrapper.
 
 ## Getting Started
-See the [Documentation](./docs)
+
+### Prerequisites
+* gtk4
+* gtk4-layer-shell
+* pybind11
+* nholmann-json
+
+### Install
+```bash
+pip install git+https://github.com/xZepyx/helium
+```
+Also read the [Documentation](./docs).
 
 ## Release
 Helium is currently unstable/beta. It crashes sometimes.
@@ -21,7 +32,7 @@ But most of the parts are stable.
 * Supports all except the ones which don't support layer-shell protocol.
 
 ## Examples
-* I will be writing examples.
+* I have wrote some examples here: [./examples](./examples)
 * Probably the best source will be [nucleus-shell](https://github.com/nucleus-hq/nucleus-shell) once it's rewritten in helium.
 
 ## Contributing

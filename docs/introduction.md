@@ -209,6 +209,7 @@ That's a working bar. You can style it with CSS, add more sections, wire up audi
 |---|---|
 | **types/** | Each widget in its own file — labels, buttons, boxes, windows, etc. |
 | **services/** | Each service in its own file — audio, network, notifications, etc. |
+| **config.md** | JSON config system (dot notation, defaults, auto-save) |
 | **compositor.md** | Hyprland IPC functions |
 | **managers.md** | WindowManager, CssManager, IconManager |
 | **utilities.md** | Poll, Timeout, watch_file, unwatch_file |

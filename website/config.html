@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Config — helium</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topbar">
+<div class="topbar-left">
+<button class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<a href="index.html" class="logo">Helium</a>
+</div>
+<div class="topbar-center">
+<div class="nav-links">
+<a href="index.html">Home</a>
+<a href="docs.html" active>Docs</a>
+<a href="about.html">About</a>
+</div>
+</div>
+<div class="topbar-right">
+<a href="https://github.com/xZepyx/helium" target="_blank" class="gh-icon" title="GitHub">
+<svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+</a>
+</div>
+</nav>
+
+<div class="wrapper">
+<aside class="sidebar">
+<div class="sidebar-section"><div class="heading">Getting Started</div>
+<a href="introduction.html" class="nav-link">Introduction</a>
+<a href="config.html" class="nav-link active">Config</a>
+<a href="compositor.html" class="nav-link">Compositor</a>
+<a href="managers.html" class="nav-link">Managers</a>
+</div>
+<div class="sidebar-section"><div class="heading">Types</div>
+<a href="types/arrow.html" class="nav-link">Arrow</a>
+<a href="types/arrowbutton.html" class="nav-link">Arrowbutton</a>
+<a href="types/box.html" class="nav-link">Box</a>
+<a href="types/button.html" class="nav-link">Button</a>
+<a href="types/calendar.html" class="nav-link">Calendar</a>
+<a href="types/centerbox.html" class="nav-link">Centerbox</a>
+<a href="types/checkbutton.html" class="nav-link">Checkbutton</a>
+<a href="types/corner.html" class="nav-link">Corner</a>
+<a href="types/dropdown.html" class="nav-link">Dropdown</a>
+<a href="types/entry.html" class="nav-link">Entry</a>
+<a href="types/eventbox.html" class="nav-link">Eventbox</a>
+<a href="types/fixed.html" class="nav-link">Fixed</a>
+<a href="types/grid.html" class="nav-link">Grid</a>
+<a href="types/headerbar.html" class="nav-link">Headerbar</a>
+<a href="types/icon.html" class="nav-link">Icon</a>
+<a href="types/image.html" class="nav-link">Image</a>
+<a href="types/label.html" class="nav-link">Label</a>
+<a href="types/listbox.html" class="nav-link">Listbox</a>
+<a href="types/listboxrow.html" class="nav-link">Listboxrow</a>
+<a href="types/materialsymbol.html" class="nav-link">Materialsymbol</a>
+<a href="types/overlay.html" class="nav-link">Overlay</a>
+<a href="types/panel.html" class="nav-link">Panel</a>
+<a href="types/picture.html" class="nav-link">Picture</a>
+<a href="types/popovermenu.html" class="nav-link">Popovermenu</a>
+<a href="types/regularwindow.html" class="nav-link">Regularwindow</a>
+<a href="types/revealer.html" class="nav-link">Revealer</a>
+<a href="types/revealerwindow.html" class="nav-link">Revealerwindow</a>
+<a href="types/scale.html" class="nav-link">Scale</a>
+<a href="types/scrolledwindow.html" class="nav-link">Scrolledwindow</a>
+<a href="types/separator.html" class="nav-link">Separator</a>
+<a href="types/spinbutton.html" class="nav-link">Spinbutton</a>
+<a href="types/stack.html" class="nav-link">Stack</a>
+<a href="types/stackswitcher.html" class="nav-link">Stackswitcher</a>
+<a href="types/switch.html" class="nav-link">Switch</a>
+<a href="types/togglebutton.html" class="nav-link">Togglebutton</a>
+<a href="types/widget.html" class="nav-link">Widget</a>
+<a href="types/window.html" class="nav-link">Window</a>
+</div>
+<div class="sidebar-section"><div class="heading">Services</div>
+<a href="services/applicationservice.html" class="nav-link">Applicationservice</a>
+<a href="services/audioservice.html" class="nav-link">Audioservice</a>
+<a href="services/backlightservice.html" class="nav-link">Backlightservice</a>
+<a href="services/bluetoothservice.html" class="nav-link">Bluetoothservice</a>
+<a href="services/hyprlandservice.html" class="nav-link">Hyprlandservice</a>
+<a href="services/mprisservice.html" class="nav-link">Mprisservice</a>
+<a href="services/networkservice.html" class="nav-link">Networkservice</a>
+<a href="services/notificationservice.html" class="nav-link">Notificationservice</a>
+<a href="services/powerprofilesservice.html" class="nav-link">Powerprofilesservice</a>
+<a href="services/systemtrayservice.html" class="nav-link">Systemtrayservice</a>
+<a href="services/wallpaperservice.html" class="nav-link">Wallpaperservice</a>
+</div>
+</aside>
+<main class="content">
+<h1 id="config">Config</h1>
+
+<p>Helium ships with a JSON-based config system. You define your config structure using plain Python classes — the nesting creates the JSON hierarchy automatically.</p>
+
+<h2 id="defining-your-config">Defining your config</h2>
+
+<p>Create classes for each section of your config. Nested classes become nested JSON objects, and attribute values become the defaults.</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">class WorkspacesConfig:
+    def __init__(self):
+        self.enabled = True
+        self.indicators = 8
+
+class ClockConfig:
+    def __init__(self):
+        self.enabled = True
+        self.format = &quot;%H:%M&quot;
+
+class BarModules:
+    def __init__(self):
+        self.workspaces = WorkspacesConfig()
+        self.clock = ClockConfig()
+
+class BarConfig:
+    def __init__(self):
+        self.position = &quot;top&quot;
+        self.enabled = True
+        self.height = 34
+        self.modules = BarModules()
+
+class MyConfig:
+    def __init__(self):
+        self.bar = BarConfig()
+        self.theme = &quot;dark&quot;</code></pre></div>
+
+<h2 id="registering-defaults">Registering defaults</h2>
+
+<p>Use <code>merge_defaults()</code> with <code>helium.functions.config_from_class()</code> which recursively converts your class instance to a nested dict:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">config.merge_defaults(helium.functions.config_from_class(MyConfig()))</code></pre></div>
+
+<p>This sets your class structure as the config schema. Missing keys in the JSON file will be auto-filled with these defaults on every load.</p>
+
+<h2 id="path">Path</h2>
+
+<p>Set the path to your config file:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">import os
+config.set_path(os.path.expanduser(&quot;~/.config/helium/config.json&quot;))</code></pre></div>
+
+<p>If the file doesn't exist it's created with your defaults. If it exists but is missing keys, the missing defaults are merged in and the file is rewritten automatically.</p>
+
+<h2 id="reading-values">Reading values</h2>
+
+<p>Use dot notation to traverse nested keys:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">theme = config.get(&quot;appearance.theme&quot;)
+height = config.get(&quot;bar.height&quot;)
+format = config.get(&quot;bar.modules.clock.format&quot;)</code></pre></div>
+
+<p>Provide a fallback for keys that may not exist:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">value = config.get(&quot;nonexistent.key&quot;, &quot;fallback&quot;)</code></pre></div>
+
+<p>If no fallback is given, <code>None</code> is returned for missing keys.</p>
+
+<h2 id="writing-values">Writing values</h2>
+
+<div class="code-block-wrap"><pre><code class="language-python">config.set(&quot;appearance.theme&quot;, &quot;cream&quot;)
+config.set(&quot;bar.height&quot;, 40)
+config.set(&quot;bar.modules.clock.format&quot;, &quot;%I:%M %p&quot;)</code></pre></div>
+
+<p>Writing a nested dict replaces the entire subtree:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">config.set(&quot;bar.modules&quot;, {
+    &quot;workspaces&quot;: {&quot;enabled&quot;: True, &quot;indicators&quot;: 6},
+    &quot;clock&quot;: {&quot;enabled&quot;: True, &quot;format&quot;: &quot;%H:%M&quot;},
+})</code></pre></div>
+
+<p>Changes trigger an automatic save after a 200 ms debounce. You can force an immediate save:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">config.save()</code></pre></div>
+
+<h2 id="other-operations">Other operations</h2>
+
+<p>Reload from disk (discards in-memory changes):</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">config.reload()</code></pre></div>
+
+<p>List all top-level keys:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">keys = config.keys()</code></pre></div>
+
+<p>Check if the config file exists on disk:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">if config.exists():
+    ...</code></pre></div>
+
+<p>View the path:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">path = config.path()</code></pre></div>
+
+<p>Access the full data as a Python dict:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python">data = config.data</code></pre></div>
+
+<h2 id="accessing-config-from-other-files">Accessing config from other files</h2>
+
+<p><code>helium.config</code> is a singleton — register defaults and set the path once (typically in your main file), then <code>import helium</code> from anywhere else to read or write:</p>
+
+<div class="code-block-wrap"><pre><code class="language-python"># bar.py — your bar module
+import helium
+
+class BarWidget:
+    def __init__(self):
+        self.height = helium.config.get(&quot;bar.height&quot;)
+        self.position = helium.config.get(&quot;bar.position&quot;)</code></pre></div>
+
+<p>The config path and defaults only need to be set once. All subsequent imports of <code>helium.config</code> share the same state.</p>
+
+<div class="code-block-wrap"><pre><code class="language-python"># main.py — entry point
+import helium
+from bar import BarWidget
+
+class BarConfig:
+    def __init__(self):
+        self.height = 34
+        self.position = &quot;top&quot;
+
+class MyConfig:
+    def __init__(self):
+        self.bar = BarConfig()
+
+helium.config.merge_defaults(helium.functions.config_from_class(MyConfig()))
+helium.config.set_path(&quot;~/.config/helium/config.json&quot;)
+
+bar = BarWidget()</code></pre></div>
+
+<h2 id="full-example">Full example</h2>
+
+<div class="code-block-wrap"><pre><code class="language-python">import os, json
+import helium
+
+class BarConfig:
+    def __init__(self):
+        self.height = 34
+        self.position = &quot;top&quot;
+
+class MyConfig:
+    def __init__(self):
+        self.bar = BarConfig()
+        self.theme = &quot;dark&quot;
+
+config = helium.config
+config.merge_defaults(helium.functions.config_from_class(MyConfig()))
+
+config.set_path(os.path.expanduser(&quot;~/.config/helium/config.json&quot;))
+
+config.set(&quot;bar.height&quot;, 40)
+print(config.get(&quot;bar.height&quot;))
+
+config.save()</code></pre></div>
+
+<p>Run it with <code>PYTHONPATH=builddir python3 yourfile.py</code>.</p>
+
+
+</main>
+</div>
+
+<footer class="footer">
+helium &middot; built with python and gtk4
+</footer>
+
+<script>
+
+document.querySelectorAll('.nav-link').forEach(function(el) {
+    el.addEventListener('click', function() {
+        document.querySelectorAll('.nav-link').forEach(function(l) { l.classList.remove('active'); });
+        this.classList.add('active');
+    });
+});
+
+document.querySelectorAll('.code-block-wrap').forEach(function(wrap) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+        var code = wrap.querySelector('code');
+        navigator.clipboard.writeText(code.textContent).then(function() {
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        });
+    });
+    wrap.appendChild(btn);
+});
+
+</script>
+
+</body>
+</html>

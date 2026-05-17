@@ -172,7 +172,7 @@ def collect_docs():
 def build_sidebar(current=None):
     """Build sidebar HTML."""
     sections = {
-        "Getting Started": ["introduction.md", "compositor.md", "managers.md"],
+        "Getting Started": ["introduction.md", "config.md", "compositor.md", "managers.md"],
         "Types": sorted([f"types/{f}" for f in os.listdir(os.path.join(DOCS, "types")) if f.endswith(".md")]),
         "Services": sorted([f"services/{f}" for f in os.listdir(os.path.join(DOCS, "services")) if f.endswith(".md")]),
     }
@@ -246,21 +246,7 @@ document.querySelectorAll('.nav-link').forEach(function(el) {
         wrapper_cls = 'wrapper wrapper-center'
         sidebar_script = ''
 
-    theme_script = '''
-var saved = localStorage.getItem('theme') || 'dark';
-document.querySelectorAll('.theme-dot').forEach(function(dot) {
-    dot.addEventListener('click', function() {
-        var theme = this.dataset.theme;
-        document.documentElement.className = 'theme-' + theme;
-        localStorage.setItem('theme', theme);
-        document.querySelectorAll('.theme-dot').forEach(function(d) { d.classList.remove('active'); });
-        this.classList.add('active');
-    });
-    if (dot.dataset.theme === saved) dot.classList.add('active');
-});
-'''
-
-    script = sidebar_script + copy_script + theme_script
+    script = sidebar_script + copy_script
 
     active_home = ' active' if tab == "home" else ''
     active_docs = ' active' if tab == "docs" else ''
@@ -272,7 +258,6 @@ document.querySelectorAll('.theme-dot').forEach(function(dot) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)} — helium</title>
-<script>(function(){{var t=localStorage.getItem('theme')||'dark';document.documentElement.className='theme-'+t;}})();</script>
 <link rel="stylesheet" href="{css_path}">
 </head>
 <body>
@@ -287,15 +272,12 @@ document.querySelectorAll('.theme-dot').forEach(function(dot) {
 <a href="{prefix}index.html"{active_home}>Home</a>
 <a href="{prefix}docs.html"{active_docs}>Docs</a>
 <a href="{prefix}about.html"{active_about}>About</a>
-<a href="https://github.com/xZepyx/helium" class="nav-gh" target="_blank">GitHub</a>
 </div>
 </div>
 <div class="topbar-right">
-<div class="theme-dots">
-<span class="theme-dot" data-theme="dark" style="background:#7e9cd8" title="Dark"></span>
-<span class="theme-dot" data-theme="cream" style="background:#a2b29f" title="Cream"></span>
-<span class="theme-dot" data-theme="forest" style="background:#609966" title="Forest"></span>
-</div>
+<a href="https://github.com/xZepyx/helium" target="_blank" class="gh-icon" title="GitHub">
+<svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+</a>
 </div>
 </nav>
 
@@ -365,7 +347,7 @@ def generate_service_pages():
         print(f"  {rel} → services/{out_fn}")
 
 def generate_other_pages():
-    others = ["introduction.md", "compositor.md", "managers.md"]
+    others = ["introduction.md", "config.md", "compositor.md", "managers.md"]
     for fn in others:
         path = os.path.join(DOCS, fn)
         if not os.path.exists(path):
@@ -407,7 +389,7 @@ def generate_docs_index():
 
     # Other
     html += '<h2>Guides & Reference</h2>\n<div class="cards">\n'
-    for fn in ["introduction.html", "compositor.html", "managers.html"]:
+    for fn in ["introduction.html", "config.html", "compositor.html", "managers.html"]:
         name = fn.replace(".html", "")
         title = name.replace("-", " ").title()
         html += f'<a href="{fn}" class="card" style="text-decoration:none"><h3>{title}</h3><p>docs/{name}.md</p></a>\n'

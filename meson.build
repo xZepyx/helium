@@ -11,21 +11,12 @@ gtk = dependency('gtk4')
 
 layer_shell = dependency('gtk4-layer-shell-0')
 
+nlohmann_json = dependency('nlohmann_json', required: false)
+
 executable(
     'helium_test',
 
     'src/main.cpp',
-
-    dependencies: [
-        gtk,
-        layer_shell
-    ]
-)
-
-executable(
-    'test_helium',
-
-    'tests/test_helium.cpp',
 
     dependencies: [
         gtk,
@@ -43,8 +34,9 @@ python.extension_module(
     dependencies: [
         pybind11,
         gtk,
-        layer_shell
+        layer_shell,
+        nlohmann_json
     ],
 
-    install: false
+    install: true
 )

@@ -60,8 +60,81 @@
 #include "../services/powerprofilesservice.hpp"
 #include "../services/applicationservice.hpp"
 #include "../services/systemtrayservice.hpp"
+#include "../config.hpp"
 
 namespace py = pybind11;
+
+namespace {
+
+// Recursively convert a Python class instance to nested dicts
+py::object _cfg_convert(const py::object& val) {
+    auto isinstance_fn = py::module_::import("builtins").attr("isinstance");
+    auto dict_type = py::module_::import("builtins").attr("dict");
+
+    if (isinstance_fn(val, dict_type).cast<bool>()
+        || py::isinstance<py::list>(val) || py::isinstance<py::tuple>(val)
+        || py::isinstance<py::str>(val) || py::isinstance<py::bool_>(val)
+        || py::isinstance<py::int_>(val) || py::isinstance<py::float_>(val)
+        || val.is_none())
+        return val;
+
+    if (py::hasattr(val, "__dict__")) {
+        py::dict result;
+        auto d = py::cast<py::dict>(py::module_::import("builtins").attr("vars")(val));
+        for (const auto& item : d) {
+            result[item.first] = _cfg_convert(
+                py::reinterpret_borrow<py::object>(item.second));
+        }
+        return std::move(result);
+    }
+    return val;
+}
+
+} // anonymous namespace
+
+// Helper: recursively convert json to pybind11 objects
+py::object json_to_py(const json& j) {
+    if (j.is_null()) return py::none();
+    if (j.is_boolean()) return py::bool_(j.get<bool>());
+    if (j.is_number_integer()) return py::int_(j.get<int>());
+    if (j.is_number_float()) return py::float_(j.get<double>());
+    if (j.is_string()) return py::str(j.get<std::string>());
+    if (j.is_array()) {
+        py::list list;
+        for (const auto& item : j) list.append(json_to_py(item));
+        return std::move(list);
+    }
+    if (j.is_object()) {
+        py::dict dict;
+        for (auto it = j.begin(); it != j.end(); ++it)
+            dict[py::str(it.key())] = json_to_py(it.value());
+        return std::move(dict);
+    }
+    return py::none();
+}
+
+// Helper: convert a pybind11 object to json
+json py_to_json(const py::handle& obj) {
+    if (obj.is_none()) return nullptr;
+    if (py::isinstance<py::bool_>(obj)) return obj.cast<bool>();
+    if (py::isinstance<py::int_>(obj)) return obj.cast<int>();
+    if (py::isinstance<py::float_>(obj)) return obj.cast<double>();
+    if (py::isinstance<py::str>(obj)) return obj.cast<std::string>();
+    if (py::isinstance<py::list>(obj) || py::isinstance<py::tuple>(obj)) {
+        json arr = json::array();
+        for (const auto& item : obj) arr.push_back(py_to_json(item));
+        return arr;
+    }
+    if (py::isinstance<py::dict>(obj)) {
+        json dict = json::object();
+        py::dict d = py::reinterpret_borrow<py::dict>(obj);
+        for (auto item : d) {
+            dict[py::str(item.first).cast<std::string>()] = py_to_json(item.second);
+        }
+        return dict;
+    }
+    return nullptr;
+}
 
 PYBIND11_MODULE(helium, m) {
     m.doc() = "Helium shell framework - ported from Ignis to C++";
@@ -89,6 +162,63 @@ PYBIND11_MODULE(helium, m) {
         return display ? g_list_model_get_n_items(gdk_display_get_monitors(display)) : 0;
     });
 
+
+
+
+
+    // Config singleton
+    py::class_<Config> config_cls(m, "Config");
+    config_cls
+        .def_static("get_default", &Config::get_default, py::return_value_policy::reference)
+        .def("set_path", &Config::set_path, py::arg("path"))
+        .def("path", &Config::path)
+        .def("load", &Config::load)
+        .def("save", &Config::save)
+        .def("reload", &Config::reload)
+        .def("merge_defaults", [](Config& self, const py::dict& data) {
+            self.set_defaults(py_to_json(data));
+        }, py::arg("data"))
+        .def("get", [](Config& self, const std::string& key, const py::object& default_val) {
+            const json* j = &self.data();
+            size_t pos = 0, end;
+            while ((end = key.find('.', pos)) != std::string::npos) {
+                auto segment = key.substr(pos, end - pos);
+                if (!j->is_object() || !j->contains(segment))
+                    return default_val;
+                j = &j->at(segment);
+                pos = end + 1;
+            }
+            auto last = key.substr(pos);
+            if (!j->is_object() || !j->contains(last))
+                return default_val;
+            return json_to_py(j->at(last));
+        }, py::arg("key"), py::arg("default") = py::none())
+        .def("set", [](Config& self, const std::string& key, const py::object& value) {
+            auto segments = key;
+            json* j = &self.data();
+            size_t pos = 0, end;
+            while ((end = segments.find('.', pos)) != std::string::npos) {
+                auto segment = segments.substr(pos, end - pos);
+                if (!j->contains(segment) || !(*j)[segment].is_object()) {
+                    (*j)[segment] = json::object();
+                }
+                j = &(*j)[segment];
+                pos = end + 1;
+            }
+            (*j)[segments.substr(pos)] = py_to_json(value);
+            self.schedule_save();
+        }, py::arg("key"), py::arg("value"))
+        .def("keys", &Config::keys)
+        .def("exists", &Config::exists)
+        .def_property_readonly("data", [](Config& self) {
+            return json_to_py(self.data());
+        })
+        .def("__repr__", [](Config& self) {
+            return "<Config path='" + self.path() + "'>";
+        });
+
+    m.attr("config") = py::cast(&Config::get_default(), py::return_value_policy::reference);
+
     m.def("get_monitor_geometry", [](int monitor) {
         auto display = gdk_display_get_default();
         if (!display) return std::vector<int>{0, 0, 0, 0};
@@ -113,6 +243,10 @@ PYBIND11_MODULE(helium, m) {
         FileMonitor::watch(path, callback);
     }, py::arg("path"), py::arg("callback"));
     f.def("unwatch_file", &FileMonitor::unwatch, py::arg("path"));
+    f.def("config_from_class", [](const py::object& obj) {
+        return _cfg_convert(obj);
+    }, py::arg("obj"),
+    "Convert a class instance to a nested dict for config.merge_defaults()");
 
     // helium.types submodule
     py::module_ t = m.def_submodule("types", "Helium widget types");

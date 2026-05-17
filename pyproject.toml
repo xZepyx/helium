@@ -1,0 +1,17 @@
+[build-system]
+requires = ["meson-python"]
+build-backend = "mesonpy"
+
+[project]
+name = "helium-lsf"
+version = "0.1.0"
+description = "Desktop shell widgets with Python and GTK4"
+authors = [{name = "xZepyx"}]
+license = {text = "GPL-3.0"}
+requires-python = ">=3.11"
+
+[project.urls]
+Homepage = "https://github.com/xZepyx/helium"
+Source = "https://github.com/xZepyx/helium"
+
+
