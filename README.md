@@ -1,6 +1,4 @@
-# helium
-Helium lets you build desktop shell widgets with Python/C++ and GTK4. Bars, dashboards, notification popups, control panels — anything that sits on your desktop via the layer-shell protocol.
-
+# Helium
 <p align="center">
   <img src="https://img.shields.io/github/last-commit/xZepyx/helium?style=for-the-badge&color=8b5cf6&logo=git&logoColor=EDE9FE&labelColor=1E1B2E" />
   &nbsp;&nbsp;
@@ -8,6 +6,15 @@ Helium lets you build desktop shell widgets with Python/C++ and GTK4. Bars, dash
   &nbsp;&nbsp;
   <img src="https://img.shields.io/github/repo-size/xZepyx/helium?style=for-the-badge&color=8b5cf6&logo=protondrive&logoColor=EDE9FE&labelColor=1E1B2E" />
 </p>
+
+## Overview
+Helium lets you build desktop shell widgets with Python/C++ and GTK4. Bars, dashboards, notification popups, control panels — anything that sits on your desktop via the layer-shell protocol.
+
+### Features
+* All gtk4 widgets wrapped.
+* Hot-reloading css. (config to be hot-reloaded soon)
+* Compositor IPCs.
+* System Services Wrapper.
 
 ## Getting Started
 See the [Documentation](./docs)
