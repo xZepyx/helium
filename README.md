@@ -29,8 +29,11 @@ yay -S python-helium
 Also read the [Documentation](./docs).
 
 ## Release
-Helium is currently unstable/beta. It crashes sometimes.
+Helium is currently in beta. It crashes sometimes.
 But most of the parts are stable.
+
+## Configuration
+Helium can be configured in python but it also supports C++ for maximum speed. There is no documenation for C++ so prefer source code directly
 
 ## Supported Clients
 * Hyprland (Only client with WS model support as of now)
