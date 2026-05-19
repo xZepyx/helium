@@ -39,7 +39,7 @@ But most of the parts are stable.
 
 ## Examples
 * I have wrote some examples here: [./examples](./examples)
-* Probably the best source will be [nucleus-shell](https://github.com/nucleus-hq/nucleus-shell) once it's rewritten in helium.
+* The best source is probably [nucleus-shell-v2](https://github.com/nucleus-hq/nucleus-shell/tree/v2) (actively being worked on)
 
 ## Contributing
 Feel free to contribute. I will write the guides soon.
