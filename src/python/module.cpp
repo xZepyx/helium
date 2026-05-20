@@ -521,7 +521,8 @@ PYBIND11_MODULE(helium, m) {
     // StackSwitcher
     py::class_<StackSwitcher, Widget>(t, "StackSwitcher")
         .def(py::init<>())
-        .def("set_stack", &StackSwitcher::set_stack);
+        .def("set_stack", &StackSwitcher::set_stack)
+        .def("get_stack", &StackSwitcher::get_stack);
 
     // Separator
     py::class_<Separator, Widget>(t, "Separator")
@@ -534,8 +535,12 @@ PYBIND11_MODULE(helium, m) {
         .def("select_month", &Calendar::select_month)
         .def("mark_day", &Calendar::mark_day)
         .def("unmark_day", &Calendar::unmark_day)
+        .def("clear_marks", &Calendar::clear_marks)
         .def("set_show_heading", &Calendar::set_show_heading)
-        .def("set_show_day_names", &Calendar::set_show_day_names);
+        .def("set_show_day_names", &Calendar::set_show_day_names)
+        .def("set_show_week_numbers", &Calendar::set_show_week_numbers)
+        .def("on_day_selected", &Calendar::on_day_selected)
+        .def("on_month_changed", &Calendar::on_month_changed);
 
     // DropDown
     py::class_<DropDown, Widget>(t, "DropDown")
@@ -577,7 +582,13 @@ PYBIND11_MODULE(helium, m) {
 
     // Picture
     py::class_<Picture, Widget>(t, "Picture")
-        .def(py::init<const std::string&>(), py::arg("file_path") = "");
+        .def(py::init<const std::string&>(), py::arg("file_path") = "")
+        .def("set_filename", &Picture::set_filename)
+        .def("get_filename", &Picture::get_filename)
+        .def("set_keep_aspect_ratio", &Picture::set_keep_aspect_ratio)
+        .def("get_keep_aspect_ratio", &Picture::get_keep_aspect_ratio)
+        .def("set_can_shrink", &Picture::set_can_shrink)
+        .def("get_can_shrink", &Picture::get_can_shrink);
 
     // Corner
     py::class_<Corner, Widget>(t, "Corner")
@@ -625,9 +636,14 @@ PYBIND11_MODULE(helium, m) {
     py::class_<HeaderBar, Widget>(t, "HeaderBar")
         .def(py::init<>())
         .def("set_title", &HeaderBar::set_title)
+        .def("get_title", &HeaderBar::get_title)
+        .def("set_subtitle", &HeaderBar::set_subtitle)
+        .def("get_subtitle", &HeaderBar::get_subtitle)
         .def("set_show_title_buttons", &HeaderBar::set_show_title_buttons)
+        .def("get_show_title_buttons", &HeaderBar::get_show_title_buttons)
         .def("pack_start", &HeaderBar::pack_start)
-        .def("pack_end", &HeaderBar::pack_end);
+        .def("pack_end", &HeaderBar::pack_end)
+        .def("remove", &HeaderBar::remove);
 
     // ListBox
     py::class_<ListBox, Widget>(t, "ListBox")
@@ -636,6 +652,7 @@ PYBIND11_MODULE(helium, m) {
         .def("remove", &ListBox::remove)
         .def("clear", &ListBox::clear)
         .def("select_row", &ListBox::select_row)
+        .def("unselect_row", &ListBox::unselect_row)
         .def("get_selected_row", &ListBox::get_selected_row)
         .def("set_selection_mode", &ListBox::set_selection_mode);
 
@@ -649,8 +666,11 @@ PYBIND11_MODULE(helium, m) {
             }
             return row;
         }), py::arg("label") = "")
+        .def("set_child", &ListBoxRow::set_child)
         .def("on_activate", &ListBoxRow::on_activate)
-        .def("set_selected", &ListBoxRow::set_selected);
+        .def("set_selected", &ListBoxRow::set_selected)
+        .def("is_selected", &ListBoxRow::is_selected)
+        .def("activate", &ListBoxRow::activate);
 
     // Window (layer shell)
     py::class_<Window, Widget>(t, "Window")
@@ -701,6 +721,8 @@ PYBIND11_MODULE(helium, m) {
         .def("set_input_height", &Window::set_input_height)
         .def("get_input_width", &Window::get_input_width)
         .def("get_input_height", &Window::get_input_height)
+        .def("set_anchor", &Window::set_anchor)
+        .def("get_anchor", &Window::get_anchor)
         .def("set_margin", &Window::set_margin)
         .def("set_dynamic_input_region", &Window::set_dynamic_input_region)
         .def("get_dynamic_input_region", &Window::get_dynamic_input_region);
@@ -749,6 +771,7 @@ PYBIND11_MODULE(helium, m) {
              py::arg("namespace"), py::arg("title") = "")
         .def("set_title", &RegularWindow::set_title)
         .def("get_title", &RegularWindow::get_title)
+        .def("get_namespace", &RegularWindow::get_namespace)
         .def("set_child", &RegularWindow::set_child)
         .def("set_titlebar", &RegularWindow::set_titlebar)
         .def("set_default_size", &RegularWindow::set_default_size);
@@ -770,6 +793,8 @@ PYBIND11_MODULE(helium, m) {
     py::class_<PopoverMenu, Widget>(t, "PopoverMenu")
         .def(py::init<>())
         .def("add_child", &PopoverMenu::add_child, py::arg("child"), py::arg("id") = "")
+        .def("set_parent", &PopoverMenu::set_parent)
+        .def("set_pointing_to", &PopoverMenu::set_pointing_to)
         .def("popup", &PopoverMenu::popup)
         .def("popdown", &PopoverMenu::popdown);
 
@@ -844,6 +869,7 @@ PYBIND11_MODULE(helium, m) {
     bt_svc.def_static("get_default", &BluetoothService::get_default, py::return_value_policy::reference)
         .def("is_bluetooth_on", &BluetoothService::is_bluetooth_on)
         .def("set_bluetooth_on", &BluetoothService::set_bluetooth_on)
+        .def("is_connected", &BluetoothService::is_connected, py::arg("mac") = "")
         .def("get_devices", &BluetoothService::get_devices)
         .def("connect_signal", &BluetoothService::connect_signal);
 
@@ -862,7 +888,10 @@ PYBIND11_MODULE(helium, m) {
         .def("get_artist", &MprisService::get_artist, py::arg("player") = "")
         .def("get_title", &MprisService::get_title, py::arg("player") = "")
         .def("get_status", &MprisService::get_status, py::arg("player") = "")
+        .def("get_art_url", &MprisService::get_art_url, py::arg("player") = "")
         .def("get_players", &MprisService::get_players)
+        .def("start_polling", &MprisService::start_polling, py::arg("interval_ms") = 2000)
+        .def("stop_polling", &MprisService::stop_polling)
         .def("connect_signal", &MprisService::connect_signal);
 
     // BacklightService
