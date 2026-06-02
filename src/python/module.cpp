@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/functional.h>
+#include <pybind11/embed.h>
 #include <gtk/gtk.h>
 
 #include "../types/widget.hpp"
@@ -92,8 +93,65 @@ py::object _cfg_convert(const py::object& val) {
 
 } // anonymous namespace
 
+// --- hot-reload helpers ---
+static std::vector<GFileMonitor*>& py_monitors() {
+    static std::vector<GFileMonitor*> monitors;
+    return monitors;
+}
+
+static void on_py_changed(GFileMonitor*, GFile* file, GFile*,
+                           GFileMonitorEvent event, gpointer) {
+    if (event != G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT
+        && event != G_FILE_MONITOR_EVENT_CREATED)
+        return;
+
+    char* cpath = g_file_get_path(file);
+    if (!cpath) return;
+    std::string path(cpath);
+    g_free(cpath);
+
+    if (path.size() < 3
+        || path.substr(path.size() - 3) != ".py")
+        return;
+
+    try {
+        py::gil_scoped_acquire gil;
+        py::exec(R"(
+import os, sys
+os.execl(sys.executable, sys.executable, *sys.argv)
+)");
+    } catch (py::error_already_set& e) {
+        g_printerr("[Helium] Reload error: %s\n", e.what());
+    } catch (std::exception& e) {
+        g_printerr("[Helium] Reload error: %s\n", e.what());
+    }
+}
+
+static void watch_py_dir(const char* dir, std::vector<GFileMonitor*>& out) {
+    GDir* d = g_dir_open(dir, 0, nullptr);
+    if (!d) return;
+    const char* name;
+    while ((name = g_dir_read_name(d)) != nullptr) {
+        if (name[0] == '.') continue;
+        std::string full = std::string(dir) + "/" + name;
+        GFile* f = g_file_new_for_path(full.c_str());
+        if (g_file_query_file_type(f, G_FILE_QUERY_INFO_NONE, nullptr)
+            == G_FILE_TYPE_DIRECTORY) {
+            watch_py_dir(full.c_str(), out);
+        } else if (strstr(name, ".py")) {
+            GFileMonitor* mon = g_file_monitor_file(f, G_FILE_MONITOR_NONE, nullptr, nullptr);
+            if (mon) {
+                g_signal_connect(mon, "changed", G_CALLBACK(on_py_changed), nullptr);
+                out.push_back(mon);
+            }
+        }
+        g_object_unref(f);
+    }
+    g_dir_close(d);
+}
+
 // Helper: recursively convert json to pybind11 objects
-py::object json_to_py(const json& j) {
+static py::object json_to_py(const json& j) {
     if (j.is_null()) return py::none();
     if (j.is_boolean()) return py::bool_(j.get<bool>());
     if (j.is_number_integer()) return py::int_(j.get<int>());
@@ -114,7 +172,7 @@ py::object json_to_py(const json& j) {
 }
 
 // Helper: convert a pybind11 object to json
-json py_to_json(const py::handle& obj) {
+static json py_to_json(const py::handle& obj) {
     if (obj.is_none()) return nullptr;
     if (py::isinstance<py::bool_>(obj)) return obj.cast<bool>();
     if (py::isinstance<py::int_>(obj)) return obj.cast<int>();
@@ -139,7 +197,23 @@ json py_to_json(const py::handle& obj) {
 PYBIND11_MODULE(helium, m) {
     m.doc() = "Helium shell framework - ported from Ignis to C++";
 
-    m.def("init", []() { gtk_init(); });
+    m.def("init", []() {
+        gtk_init();
+
+        const char* dd = g_getenv("HELIUM_DAEMON_DIR");
+        if (dd) {
+            auto& mons = py_monitors();
+            watch_py_dir(dd, mons);
+        }
+    });
+
+    m.def("reload", []() {
+        py::gil_scoped_acquire gil;
+        py::exec(R"(
+import os, sys
+os.execl(sys.executable, sys.executable, *sys.argv)
+)");
+    });
     m.def("run", []() {
         GMainLoop* loop = g_main_loop_new(nullptr, false);
         g_main_loop_run(loop);
@@ -853,6 +927,18 @@ PYBIND11_MODULE(helium, m) {
         .def("connect_signal", &AudioService::connect_signal)
         .def("start_polling", &AudioService::start_polling)
         .def("stop_polling", &AudioService::stop_polling);
+
+    // Notification
+    py::class_<Notification>(svc, "Notification")
+        .def_readwrite("id", &Notification::id)
+        .def_readwrite("app_name", &Notification::app_name)
+        .def_readwrite("summary", &Notification::summary)
+        .def_readwrite("body", &Notification::body)
+        .def_readwrite("icon", &Notification::icon)
+        .def_readwrite("urgency", &Notification::urgency)
+        .def_readwrite("timestamp", &Notification::timestamp)
+        .def_readwrite("category", &Notification::category)
+        .def_readwrite("popup", &Notification::popup);
 
     // NotificationService
     py::class_<NotificationService> notif_svc(svc, "NotificationService");
