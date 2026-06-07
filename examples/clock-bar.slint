@@ -1,0 +1,21 @@
+export component ClockBar {
+    width: 1920px;
+    height: 42px;
+
+    in property <string> clock_text;
+
+    Rectangle {
+        background: #141414;
+
+        Text {
+            text: clock_text;
+            color: #76b900;
+            font-size: 14px;
+            font-family: "Space Mono";
+            letter-spacing: 0.1em;
+            vertical-alignment: center;
+            horizontal-alignment: right;
+            padding-right: 16px;
+        }
+    }
+}

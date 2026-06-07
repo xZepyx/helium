@@ -1,0 +1,19 @@
+export component MinimalBar {
+    width: 1920px;
+    height: 42px;
+
+    in property <string> label;
+
+    Rectangle {
+        background: #141414;
+
+        Text {
+            text: label;
+            color: #d4d4d4;
+            font-size: 13px;
+            font-family: "Space Grotesk";
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+    }
+}

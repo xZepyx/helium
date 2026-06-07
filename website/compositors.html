@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compositors — Helium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrapper">
+
+<nav>
+  <div class="logo"><a href="index.html">Helium</a></div>
+  <span class="nav-section">Overview</span>
+  <a href="index.html" class="page-link">Getting Started</a>
+  <span class="nav-section">Reference</span>
+  <a href="api.html" class="page-link">API</a>
+  <a href="config.html" class="page-link">Config</a>
+  <a href="services.html" class="page-link">Services</a>
+  <a href="compositors.html" class="page-link active">Compositors</a>
+  <a href="adapters.html" class="page-link">Adapters</a>
+  <span class="nav-section">Resources</span>
+  <a href="examples.html" class="page-link">Examples</a>
+</nav>
+
+<main>
+  <div class="hero">
+    <h1>Compositors</h1>
+    <p>Auto-detect and communicate with your Wayland compositor</p>
+  </div>
+
+  <section>
+    <h2>Detection</h2>
+    <p>
+      Call <code>compositors::detect()</code> to auto-detect the running
+      compositor. It checks environment variables in order:
+    </p>
+    <table>
+      <tr><th>Priority</th><th>Compositor</th><th>Env var</th></tr>
+      <tr><td>1</td><td>Hyprland</td><td><code>HYPRLAND_INSTANCE_SIGNATURE</code></td></tr>
+      <tr><td>2</td><td>Niri</td><td><code>NIRI_SOCKET</code></td></tr>
+      <tr><td>3</td><td>Sway</td><td><code>SWAYSOCK</code></td></tr>
+      <tr><td>4</td><td>MangoWM</td><td>(env var not yet documented)</td></tr>
+    </table>
+    <pre><code class="language-rust">use helium::compositors;
+
+let mut compositor = compositors::detect()?;
+println!("workspaces: {:?}", compositor.workspaces());
+println!("active: {:?}", compositor.active_workspace());</code></pre>
+  </section>
+
+  <!-- ─── Compositor trait ─── -->
+  <section id="compositor-trait">
+    <h2>Compositor Trait</h2>
+    <div class="type-header"><span class="keyword">trait</span> <span class="type-name">Compositor</span></div>
+    <p>Unified interface for compositor IPC. Each supported compositor implements this trait by connecting to its Unix socket and parsing its protocol.</p>
+
+    <h3>Methods</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">workspaces</span>(&amp;self) -> <span class="type">Vec&lt;Workspace&gt;</span></div>
+      <div class="desc">List all workspaces.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">active_workspace</span>(&amp;self) -> <span class="type">Option&lt;Workspace&gt;</span></div>
+      <div class="desc">Get the currently active workspace, if any.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">monitors</span>(&amp;self) -> <span class="type">Vec&lt;Monitor&gt;</span></div>
+      <div class="desc">List all monitors/outputs.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">on_workspace_change</span>(&amp;mut self, cb: <span class="type">Box&lt;dyn Fn(Workspace) + Send&gt;</span>)</div>
+      <div class="desc">Register a callback invoked when the active workspace changes.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">on_window_focus</span>(&amp;mut self, cb: <span class="type">Box&lt;dyn Fn(Window) + Send&gt;</span>)</div>
+      <div class="desc">Register a callback invoked when the focused window changes.</div>
+    </div>
+  </section>
+
+  <!-- ─── Types ─── -->
+  <section id="types">
+    <h2>Data Types</h2>
+
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Workspace</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>id</code></td><td><code>u32</code></td><td>Numeric workspace ID</td></tr>
+      <tr><td><code>name</code></td><td><code>String</code></td><td>Workspace display name</td></tr>
+      <tr><td><code>active</code></td><td><code>bool</code></td><td>Whether this is the active workspace</td></tr>
+      <tr><td><code>monitor</code></td><td><code>String</code></td><td>Name of the monitor this workspace is on</td></tr>
+    </table>
+
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Monitor</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>name</code></td><td><code>String</code></td><td>Monitor identifier (e.g. <code>"DP-1"</code>)</td></tr>
+      <tr><td><code>width</code></td><td><code>u32</code></td><td>Width in pixels</td></tr>
+      <tr><td><code>height</code></td><td><code>u32</code></td><td>Height in pixels</td></tr>
+      <tr><td><code>scale</code></td><td><code>f64</code></td><td>Display scale factor</td></tr>
+      <tr><td><code>primary</code></td><td><code>bool</code></td><td>Whether this is the primary monitor</td></tr>
+    </table>
+
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Window</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>title</code></td><td><code>String</code></td><td>Window title</td></tr>
+      <tr><td><code>class</code></td><td><code>String</code></td><td>Window class / app ID</td></tr>
+      <tr><td><code>workspace_id</code></td><td><code>u32</code></td><td>ID of the workspace containing this window</td></tr>
+    </table>
+  </section>
+
+  <!-- ─── Hyprland ─── -->
+  <section id="hyprland">
+    <h2>Hyprland</h2>
+    <p>Connects via <code>$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket.sock</code>.</p>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Hyprland</span></div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">connect</span>() -> <span class="type">Result&lt;Self, HeliumError&gt;</span></div>
+      <div class="desc">Connect to the Hyprland IPC socket.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">is_running</span>() -> <span class="type">bool</span></div>
+      <div class="desc">Check whether <code>HYPRLAND_INSTANCE_SIGNATURE</code> is set.</div>
+    </div>
+  </section>
+
+  <!-- ─── Niri ─── -->
+  <section id="niri">
+    <h2>Niri</h2>
+    <p>Connects via the Unix socket at <code>$NIRI_SOCKET</code>.</p>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Niri</span></div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">connect</span>() -> <span class="type">Result&lt;Self, HeliumError&gt;</span></div>
+      <div class="desc">Connect to the Niri IPC socket.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">is_running</span>() -> <span class="type">bool</span></div>
+      <div class="desc">Check whether <code>NIRI_SOCKET</code> is set.</div>
+    </div>
+  </section>
+
+  <!-- ─── Sway ─── -->
+  <section id="sway">
+    <h2>Sway</h2>
+    <p>Connects via the i3 IPC protocol over the <code>$SWAYSOCK</code> Unix socket.</p>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Sway</span></div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">connect</span>() -> <span class="type">Result&lt;Self, HeliumError&gt;</span></div>
+      <div class="desc">Connect to the Sway IPC socket via i3 protocol.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">is_running</span>() -> <span class="type">bool</span></div>
+      <div class="desc">Check whether <code>SWAYSOCK</code> is set.</div>
+    </div>
+  </section>
+
+  <!-- ─── MangoWM ─── -->
+  <section id="mangowm">
+    <h2>MangoWM</h2>
+    <p>MangoWM IPC is not yet documented by the project. The backend is a stub.</p>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">MangoWM</span></div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">connect</span>() -> <span class="type">Result&lt;Self, HeliumError&gt;</span></div>
+      <div class="desc">Returns an error — MangoWM IPC is not yet supported.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">is_running</span>() -> <span class="type">bool</span></div>
+      <div class="desc">Always returns <code>false</code> until IPC docs are published.</div>
+    </div>
+  </section>
+</main>
+
+</div>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adapters — Helium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrapper">
+
+<nav>
+  <div class="logo"><a href="index.html">Helium</a></div>
+  <span class="nav-section">Overview</span>
+  <a href="index.html" class="page-link">Getting Started</a>
+  <span class="nav-section">Reference</span>
+  <a href="api.html" class="page-link">API</a>
+  <a href="config.html" class="page-link">Config</a>
+  <a href="services.html" class="page-link">Services</a>
+  <a href="compositors.html" class="page-link">Compositors</a>
+  <a href="adapters.html" class="page-link active">Adapters</a>
+  <span class="nav-section">Resources</span>
+  <a href="examples.html" class="page-link">Examples</a>
+</nav>
+
+<main>
+  <div class="hero">
+    <h1>Adapters</h1>
+    <p>Plug-in trait that wires config data to surface properties</p>
+  </div>
+
+  <section>
+    <h2>Overview</h2>
+    <p>
+      Adapters are the bridge between your data sources (services, config,
+      compositor state) and your Slint UI properties. They implement the
+      <code>Adapter</code> trait and are registered with the
+      <code>adapters!</code> macro or <code>AdapterRegistry</code>.
+    </p>
+  </section>
+
+  <!-- ─── Adapter trait ─── -->
+  <section id="adapter-trait">
+    <h2>Adapter Trait</h2>
+    <div class="type-header"><span class="keyword">trait</span> <span class="type-name">Adapter</span></div>
+    <p>All methods have default no-op implementations — override only what you need.</p>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">init</span>(&amp;mut self, ctx: <span class="type">&amp;mut AdapterCtx</span>)</div>
+      <div class="desc">Called once when the adapter is registered. Use this to set initial property values.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">tick</span>(&amp;mut self, ctx: <span class="type">&amp;mut AdapterCtx</span>)</div>
+      <div class="desc">Called on every frame tick. Update time-based properties here.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">on_event</span>(&amp;mut self, event: <span class="type">&amp;ShellEvent</span>, ctx: <span class="type">&amp;mut AdapterCtx</span>)</div>
+      <div class="desc">Called when a shell event occurs (workspace change, window focus, etc.).</div>
+    </div>
+  </section>
+
+  <!-- ─── AdapterCtx ─── -->
+  <section id="adapterctx">
+    <h2>AdapterCtx</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">AdapterCtx</span></div>
+    <p>Context handle provided to adapter methods. Adapters use this to read and write surface properties.</p>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set</span>(&amp;self, prop: <span class="type">&amp;str</span>, val: <span class="type">impl ToString</span>)</div>
+      <div class="desc">Set a surface property to a string value. The property name must match an <code>in property</code> in your Slint file.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">get</span>(&amp;self, prop: <span class="type">&amp;str</span>) -> <span class="type">Option&lt;String&gt;</span></div>
+      <div class="desc">Get the current value of a surface property.</div>
+    </div>
+  </section>
+
+  <!-- ─── ShellEvent ─── -->
+  <section id="shellevent">
+    <h2>ShellEvent</h2>
+    <div class="type-header"><span class="keyword">enum</span> <span class="type-name">ShellEvent</span></div>
+    <table>
+      <tr><th>Variant</th><th>Description</th></tr>
+      <tr><td><code>Tick</code></td><td>Regular frame tick</td></tr>
+      <tr><td><code>WorkspaceChange</code></td><td>The active workspace changed</td></tr>
+      <tr><td><code>WindowFocus</code></td><td>A different window received focus</td></tr>
+    </table>
+  </section>
+
+  <!-- ─── adapters! macro ─── -->
+  <section id="adapters-macro">
+    <h2>adapters! Macro</h2>
+    <p>Convenience macro for registering named adapters:</p>
+    <pre><code class="language-rust">let registry = adapters! {
+    "clock" => ClockAdapter { format: "%H:%M".into(), ..Default::default() },
+    "workspaces" => WorkspacesAdapter { max: 9 },
+};</code></pre>
+    <p>Returns a <code>Vec&lt;(&amp;str, Box&lt;dyn Adapter&gt;)&gt;</code> suitable for <code>AdapterRegistry::new()</code>.</p>
+  </section>
+
+  <!-- ─── AdapterRegistry ─── -->
+  <section id="adapterregistry">
+    <h2>AdapterRegistry</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">AdapterRegistry</span></div>
+    <p>A registry of named adapters. Manages lifecycle — init, tick, and event dispatch.</p>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">new</span>(pairs: <span class="type">Vec&lt;(&amp;str, Box&lt;dyn Adapter&gt;)&gt;</span>) -> <span class="type">Self</span></div>
+      <div class="desc">Create a registry from a list of (name, adapter) pairs.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">init_all</span>(&amp;mut self, ctx: <span class="type">&amp;mut AdapterCtx</span>)</div>
+      <div class="desc">Initialize all adapters. Calls <code>init()</code> on each.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">tick_all</span>(&amp;mut self, ctx: <span class="type">&amp;mut AdapterCtx</span>)</div>
+      <div class="desc">Tick all adapters. Calls <code>tick()</code> on each.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">event_all</span>(&amp;mut self, event: <span class="type">&amp;ShellEvent</span>, ctx: <span class="type">&amp;mut AdapterCtx</span>)</div>
+      <div class="desc">Send an event to all adapters. Calls <code>on_event()</code> on each.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">names</span>(&amp;self) -> <span class="type">impl Iterator&lt;Item = &amp;str&gt;</span></div>
+      <div class="desc">Iterate over the names of all registered adapters.</div>
+    </div>
+  </section>
+
+  <!-- ─── ClockAdapter ─── -->
+  <section id="clockadapter">
+    <h2>ClockAdapter</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">ClockAdapter</span></div>
+    <p>Sets the <code>clock_text</code> surface property to the current time on every tick.</p>
+
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+      <tr><td><code>format</code></td><td><code>String</code></td><td><code>"%H:%M"</code></td><td>strftime format string</td></tr>
+      <tr><td><code>interval_ms</code></td><td><code>u64</code></td><td><code>1000</code></td><td>Update interval in milliseconds</td></tr>
+    </table>
+
+    <div class="callout">Implements <code>Adapter</code>: calls <code>ctx.set("clock_text", time::formatted(&amp;self.format))</code> on every tick.</div>
+  </section>
+
+  <!-- ─── WorkspacesAdapter ─── -->
+  <section id="workspacesadapter">
+    <h2>WorkspacesAdapter</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">WorkspacesAdapter</span></div>
+    <p>Sets <code>workspaces</code> and <code>active_workspace</code> surface properties from compositor state.</p>
+
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+      <tr><td><code>max</code></td><td><code>u8</code></td><td><code>9</code></td><td>Maximum number of workspaces to track</td></tr>
+    </table>
+
+    <div class="callout">On <code>init()</code>, sets <code>workspaces</code> to a JSON array of workspace numbers and <code>active_workspace</code> to <code>"1"</code>. On <code>WorkspaceChange</code> events, updates <code>active_workspace</code>.</div>
+  </section>
+</main>
+
+</div>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

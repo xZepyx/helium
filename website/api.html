@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API — Helium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrapper">
+
+<nav>
+  <div class="logo"><a href="index.html">Helium</a></div>
+  <span class="nav-section">Overview</span>
+  <a href="index.html" class="page-link">Getting Started</a>
+  <span class="nav-section">Reference</span>
+  <a href="api.html" class="page-link active">API</a>
+  <a href="config.html" class="page-link">Config</a>
+  <a href="services.html" class="page-link">Services</a>
+  <a href="compositors.html" class="page-link">Compositors</a>
+  <a href="adapters.html" class="page-link">Adapters</a>
+  <span class="nav-section">Resources</span>
+  <a href="examples.html" class="page-link">Examples</a>
+</nav>
+
+<main>
+  <div class="hero">
+    <h1>API</h1>
+    <p>Full reference for all public types, traits, and methods</p>
+  </div>
+
+  <!-- ─── AnchorEdge ─── -->
+  <section id="anchoredge">
+    <h2>AnchorEdge</h2>
+    <div class="type-header"><span class="keyword">enum</span> <span class="type-name">AnchorEdge</span></div>
+    <p>One edge of the screen. Passed as tuples to <code>HeliumSurfaceBuilder::anchor()</code>.</p>
+
+    <h3>Variants</h3>
+    <table>
+      <tr><th>Variant</th><th>Description</th></tr>
+      <tr><td><code>Top</code></td><td>Anchors to the top edge</td></tr>
+      <tr><td><code>Bottom</code></td><td>Anchors to the bottom edge</td></tr>
+      <tr><td><code>Left</code></td><td>Anchors to the left edge</td></tr>
+      <tr><td><code>Right</code></td><td>Anchors to the right edge</td></tr>
+    </table>
+  </section>
+
+  <!-- ─── IntoAnchorEdges ─── -->
+  <section id="intoanchoredges">
+    <h2>IntoAnchorEdges</h2>
+    <div class="type-header"><span class="keyword">trait</span> <span class="type-name">IntoAnchorEdges</span></div>
+    <p>Conversion into <code>layer_shika::AnchorEdges</code>. Implemented for tuples of 1–4 <code>AnchorEdge</code> values so you can write <code>.anchor((AnchorEdge::Top, AnchorEdge::Left))</code>.</p>
+
+    <h3>Implementations</h3>
+    <table>
+      <tr><th>Tuple</th><th>Example</th></tr>
+      <tr><td><code>(AnchorEdge,)</code></td><td><code>.anchor((AnchorEdge::Top,))</code></td></tr>
+      <tr><td><code>(AnchorEdge, AnchorEdge)</code></td><td><code>.anchor((AnchorEdge::Bottom, AnchorEdge::Left))</code></td></tr>
+      <tr><td><code>(AnchorEdge, AnchorEdge, AnchorEdge)</code></td><td><code>.anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right))</code></td></tr>
+      <tr><td><code>(AnchorEdge, AnchorEdge, AnchorEdge, AnchorEdge)</code></td><td><code>.anchor((AnchorEdge::Top, AnchorEdge::Bottom, AnchorEdge::Left, AnchorEdge::Right))</code></td></tr>
+    </table>
+
+    <div class="callout">This trait is <strong>sealed</strong> — it cannot be implemented outside of Helium.</div>
+  </section>
+
+  <!-- ─── Helium ─── -->
+  <section id="helium">
+    <h2>Helium</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Helium</span></div>
+    <p>Entry point for building a shell. Call one of the constructor methods to get a <code>HeliumBuilder</code>.</p>
+
+    <h3>Methods</h3>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_file</span>(path: <span class="type">impl AsRef&lt;Path&gt;</span>) -> <span class="type">HeliumBuilder</span></div>
+      <div class="desc">Start building a Helium shell from a <code>.slint</code> file. The file is compiled with the Slint interpreter at runtime.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_compilation</span>(compilation: <span class="type">Rc&lt;CompilationResult&gt;</span>) -> <span class="type">HeliumBuilder</span></div>
+      <div class="desc">Start building from a pre-compiled Slint source. Useful when you need to load or manipulate the compilation manually.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_source</span>(code: <span class="type">impl Into&lt;String&gt;</span>) -> <span class="type">HeliumBuilder</span></div>
+      <div class="desc">Build from a Slint source string. Compiles the string at runtime.</div>
+    </div>
+  </section>
+
+  <!-- ─── HeliumBuilder ─── -->
+  <section id="heliumbuilder">
+    <h2>HeliumBuilder</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">HeliumBuilder</span></div>
+    <p>Wraps a <code>ShellBuilder</code> before any surfaces are configured. Chain calls to <code>.surface()</code> to define each surface, then finish with <code>.build()</code>.</p>
+
+    <h3>Methods</h3>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">surface</span>(self, name: <span class="type">&amp;str</span>) -> <span class="type">HeliumSurfaceBuilder</span></div>
+      <div class="desc">Start configuring a new surface with the given name. The name must match a component exported in the Slint file.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">build</span>(self) -> <span class="type">Result&lt;HeliumRuntime, HeliumError&gt;</span></div>
+      <div class="desc">Build the shell directly using a default <code>"Main"</code> surface. Only call this if you haven't called <code>.surface()</code> — otherwise, finish with <code>HeliumSurfaceBuilder::build()</code>.</div>
+    </div>
+  </section>
+
+  <!-- ─── HeliumSurfaceBuilder ─── -->
+  <section id="heliumsurfacebuilder">
+    <h2>HeliumSurfaceBuilder</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">HeliumSurfaceBuilder</span></div>
+    <p>Fluent builder for configuring individual surfaces. Chain dimension and anchor methods, then call <code>.surface()</code> for the next surface or <code>.build()</code> / <code>.run()</code> to finish.</p>
+
+    <h3>Methods</h3>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">surface</span>(self, name: <span class="type">&amp;str</span>) -> <span class="type">Self</span></div>
+      <div class="desc">Start configuring a new surface, finalizing the current one.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">height</span>(self, h: <span class="type">u32</span>) -> <span class="type">Self</span></div>
+      <div class="desc">Set the surface height in pixels.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">width</span>(self, w: <span class="type">u32</span>) -> <span class="type">Self</span></div>
+      <div class="desc">Set the surface width in pixels.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">size</span>(self, w: <span class="type">u32</span>, h: <span class="type">u32</span>) -> <span class="type">Self</span></div>
+      <div class="desc">Set both width and height in one call.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">anchor</span>(self, edges: <span class="type">impl IntoAnchorEdges</span>) -> <span class="type">Self</span></div>
+      <div class="desc">Set anchor edges using the tuple-based API. Accepts 1–4 <code>AnchorEdge</code> values.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">exclusive</span>(self) -> <span class="type">Self</span></div>
+      <div class="desc">Infer an exclusive zone from the surface dimensions. The compositor will reserve space for the surface, preventing windows from overlapping it.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">exclusive_zone</span>(self, zone: <span class="type">i32</span>) -> <span class="type">Self</span></div>
+      <div class="desc">Manually set the exclusive zone in pixels. Negative values are permitted.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">namespace</span>(self, ns: <span class="type">&amp;str</span>) -> <span class="type">Self</span></div>
+      <div class="desc">Set the namespace (app id) for the surface.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">monitors</span>(self, policy: <span class="type">MonitorPolicy</span>) -> <span class="type">Self</span></div>
+      <div class="desc">Set which monitors the surface appears on.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">build</span>(self) -> <span class="type">Result&lt;HeliumRuntime, HeliumError&gt;</span></div>
+      <div class="desc">Build the shell and return a runtime handle. Call <code>.run()</code> on the runtime to start the event loop.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">run</span>(self) -> <span class="type">Result&lt;(), HeliumError&gt;</span></div>
+      <div class="desc">Build and run the shell event loop (blocks the current thread). Equivalent to <code>.build()?.run()</code>.</div>
+    </div>
+  </section>
+
+  <!-- ─── HeliumRuntime ─── -->
+  <section id="heliumruntime">
+    <h2>HeliumRuntime</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">HeliumRuntime</span></div>
+    <p>A running Helium shell instance. Returned by <code>HeliumSurfaceBuilder::build()</code>.</p>
+
+    <h3>Methods</h3>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">run</span>(&amp;mut self) -> <span class="type">Result&lt;(), HeliumError&gt;</span></div>
+      <div class="desc">Run the event loop (blocks). Call this after building to start processing Wayland events and rendering the surface.</div>
+    </div>
+  </section>
+
+  <!-- ─── MonitorPolicy ─── -->
+  <section id="monitorpolicy">
+    <h2>MonitorPolicy</h2>
+    <div class="type-header"><span class="keyword">enum</span> <span class="type-name">MonitorPolicy</span></div>
+    <p>Specifies which monitors a surface appears on.</p>
+
+    <h3>Variants</h3>
+    <table>
+      <tr><th>Variant</th><th>Description</th></tr>
+      <tr><td><code>All</code></td><td>Show the surface on every connected monitor</td></tr>
+      <tr><td><code>Primary</code></td><td>Show the surface only on the primary monitor</td></tr>
+      <tr><td><code>Named(String)</code></td><td>Show the surface only on the monitor with the given name</td></tr>
+    </table>
+  </section>
+
+  <!-- ─── HeliumError ─── -->
+  <section id="heliumerror">
+    <h2>HeliumError</h2>
+    <div class="type-header"><span class="keyword">enum</span> <span class="type-name">HeliumError</span></div>
+    <p>Unified error type for all Helium operations. Implements <code>std::error::Error</code> via <code>thiserror</code>.</p>
+
+    <h3>Variants</h3>
+    <table>
+      <tr><th>Variant</th><th>Source</th><th>Description</th></tr>
+      <tr><td><code>Compositor(String)</code></td><td><code>compositors::detect()</code></td><td>The compositor could not be detected or connected to</td></tr>
+      <tr><td><code>Shell(String)</code></td><td><code>shell::*</code></td><td>An error from the underlying shell library</td></tr>
+      <tr><td><code>Service(String)</code></td><td><code>services::*</code></td><td>A service backend was unavailable or returned an error</td></tr>
+      <tr><td><code>Io(io::Error)</code></td><td>I/O operations</td><td>An I/O error (wraps <code>std::io::Error</code>)</td></tr>
+      <tr><td><code>Config(ConfigError)</code></td><td><code>config::*</code></td><td>A configuration error (wraps <code>config::ConfigError</code>)</td></tr>
+    </table>
+  </section>
+
+  <!-- ─── raw module ─── -->
+  <section id="raw">
+    <h2>raw module</h2>
+    <p>
+      The <code>helium::raw</code> module re-exports the full <code>layer_shika</code> crate.
+      Use this escape hatch when you need access to raw Wayland types that Helium doesn't wrap.
+    </p>
+    <pre><code class="language-rust">use helium::raw::layer_shika::*;</code></pre>
+  </section>
+</main>
+
+</div>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

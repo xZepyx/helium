@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Services — Helium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrapper">
+
+<nav>
+  <div class="logo"><a href="index.html">Helium</a></div>
+  <span class="nav-section">Overview</span>
+  <a href="index.html" class="page-link">Getting Started</a>
+  <span class="nav-section">Reference</span>
+  <a href="api.html" class="page-link">API</a>
+  <a href="config.html" class="page-link">Config</a>
+  <a href="services.html" class="page-link active">Services</a>
+  <a href="compositors.html" class="page-link">Compositors</a>
+  <a href="adapters.html" class="page-link">Adapters</a>
+  <span class="nav-section">Resources</span>
+  <a href="examples.html" class="page-link">Examples</a>
+</nav>
+
+<main>
+  <div class="hero">
+    <h1>Services</h1>
+    <p>Free-function wrappers for system services</p>
+  </div>
+
+  <section>
+    <h2>Overview</h2>
+    <p>
+      The <code>services</code> module provides stateless, free-function
+      wrappers for common system services. Each module is feature-gated:
+      simple backends (sysfs, chrono) are always available; D-Bus backends
+      require the <code>services</code> feature (enabled by default).
+    </p>
+    <table>
+      <tr><th>Module</th><th>Backend</th><th>Feature</th></tr>
+      <tr><td><code>audio</code></td><td>PipeWire / PulseAudio</td><td><code>services</code></td></tr>
+      <tr><td><code>backlight</code></td><td>sysfs (<code>/sys/class/backlight</code>)</td><td>always</td></tr>
+      <tr><td><code>bluetooth</code></td><td>BlueZ (D-Bus)</td><td><code>services</code></td></tr>
+      <tr><td><code>network</code></td><td>NetworkManager (D-Bus)</td><td><code>services</code></td></tr>
+      <tr><td><code>power</code></td><td>UPower (D-Bus)</td><td><code>services</code></td></tr>
+      <tr><td><code>powerprofiles</code></td><td>power-profiles-daemon (D-Bus)</td><td><code>services</code></td></tr>
+      <tr><td><code>time</code></td><td>chrono</td><td>always</td></tr>
+    </table>
+    <div class="callout">
+      The <code>services</code> feature pulls in <code>zbus</code> and
+      <code>inotify</code>. D-Bus backends are stubs when the feature is
+      disabled.
+    </div>
+  </section>
+
+  <!-- ─── audio ─── -->
+  <section id="audio">
+    <h2>audio</h2>
+    <p>System audio volume and mute state via PipeWire or PulseAudio.</p>
+    <pre><code class="language-rust">use helium::services::audio;
+
+let vol = audio::volume()?;
+audio::set_volume(0.5)?;
+let muted = audio::muted()?;
+audio::toggle_mute()?;</code></pre>
+
+    <h3>Types</h3>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">AudioState</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>volume</code></td><td><code>f32</code></td><td>Volume as 0.0–1.0 fraction</td></tr>
+      <tr><td><code>muted</code></td><td><code>bool</code></td><td>Whether audio is muted</td></tr>
+    </table>
+
+    <h3>Functions</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">volume</span>() -> <span class="type">Result&lt;f32, String&gt;</span></div>
+      <div class="desc">Get the current system volume as a 0.0–1.0 fraction.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set_volume</span>(v: <span class="type">f32</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Set the system volume. Clamped to 0.0–1.0.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">muted</span>() -> <span class="type">Result&lt;bool, String&gt;</span></div>
+      <div class="desc">Check whether system audio is muted.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">toggle_mute</span>() -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Toggle mute state.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_change</span>(cb: <span class="type">impl Fn(AudioState) + Send + 'static</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Register a callback invoked on audio state changes.</div>
+    </div>
+  </section>
+
+  <!-- ─── backlight ─── -->
+  <section id="backlight">
+    <h2>backlight</h2>
+    <p>Read and set display backlight brightness via sysfs.</p>
+    <pre><code class="language-rust">use helium::services::backlight;
+
+let b = backlight::brightness()?;
+backlight::set_brightness(0.8)?;</code></pre>
+
+    <h3>Types</h3>
+    <div class="type-header"><span class="keyword">enum</span> <span class="type-name">BacklightError</span></div>
+    <table>
+      <tr><th>Variant</th><th>Description</th></tr>
+      <tr><td><code>NoDevice</code></td><td>No backlight device found in <code>/sys/class/backlight</code></td></tr>
+      <tr><td><code>Io(io::Error)</code></td><td>I/O error reading or writing sysfs</td></tr>
+      <tr><td><code>Parse(String)</code></td><td>Failed to parse brightness value</td></tr>
+    </table>
+
+    <h3>Functions</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">brightness</span>() -> <span class="type">Result&lt;f32, BacklightError&gt;</span></div>
+      <div class="desc">Get the current brightness as a normalized 0.0–1.0 fraction. Reads <code>/sys/class/backlight/*/actual_brightness</code> and <code>max_brightness</code>.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set_brightness</span>(v: <span class="type">f32</span>) -> <span class="type">Result&lt;(), BacklightError&gt;</span></div>
+      <div class="desc">Set the backlight brightness. <code>v</code> is clamped to 0.0–1.0.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_change</span>(cb: <span class="type">impl Fn(f32) + Send + 'static</span>) -> <span class="type">Result&lt;(), BacklightError&gt;</span></div>
+      <div class="desc">Register a callback for brightness changes. Uses <code>inotify</code> when the <code>services</code> feature is enabled.</div>
+    </div>
+  </section>
+
+  <!-- ─── bluetooth ─── -->
+  <section id="bluetooth">
+    <h2>bluetooth</h2>
+    <p>Bluetooth adapter state and device list via BlueZ D-Bus.</p>
+    <pre><code class="language-rust">use helium::services::bluetooth;
+
+let enabled = bluetooth::enabled()?;
+let devices = bluetooth::devices()?;</code></pre>
+
+    <h3>Types</h3>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">BtDevice</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>name</code></td><td><code>String</code></td><td>Device display name</td></tr>
+      <tr><td><code>address</code></td><td><code>String</code></td><td>MAC address</td></tr>
+      <tr><td><code>connected</code></td><td><code>bool</code></td><td>Whether the device is currently connected</td></tr>
+      <tr><td><code>battery</code></td><td><code>Option&lt;u8&gt;</code></td><td>Battery level percentage, if available</td></tr>
+    </table>
+
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">BluetoothState</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>enabled</code></td><td><code>bool</code></td><td>Whether Bluetooth is turned on</td></tr>
+      <tr><td><code>devices</code></td><td><code>Vec&lt;BtDevice&gt;</code></td><td>Known paired/connected devices</td></tr>
+    </table>
+
+    <h3>Functions</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">enabled</span>() -> <span class="type">Result&lt;bool, String&gt;</span></div>
+      <div class="desc">Check whether Bluetooth is enabled on the system.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">devices</span>() -> <span class="type">Result&lt;Vec&lt;BtDevice&gt;, String&gt;</span></div>
+      <div class="desc">Get the list of known Bluetooth devices.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_change</span>(cb: <span class="type">impl Fn(BluetoothState) + Send + 'static</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Register a callback for Bluetooth state changes.</div>
+    </div>
+  </section>
+
+  <!-- ─── network ─── -->
+  <section id="network">
+    <h2>network</h2>
+    <p>Network connectivity status via NetworkManager D-Bus.</p>
+    <pre><code class="language-rust">use helium::services::network;
+
+let status = network::status()?;
+println!("connected: {}, ssid: {:?}", status.connected, status.ssid);</code></pre>
+
+    <h3>Types</h3>
+    <div class="type-header"><span class="keyword">enum</span> <span class="type-name">ConnectionType</span></div>
+    <table>
+      <tr><th>Variant</th><th>Description</th></tr>
+      <tr><td><code>Wifi</code></td><td>Wireless connection</td></tr>
+      <tr><td><code>Ethernet</code></td><td>Wired connection</td></tr>
+      <tr><td><code>None</code></td><td>No active connection</td></tr>
+    </table>
+
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">NetworkStatus</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>connected</code></td><td><code>bool</code></td><td>Whether the system has network connectivity</td></tr>
+      <tr><td><code>ssid</code></td><td><code>Option&lt;String&gt;</code></td><td>Wi-Fi SSID if connected to wireless</td></tr>
+      <tr><td><code>signal_strength</code></td><td><code>Option&lt;u8&gt;</code></td><td>Wi-Fi signal strength percentage</td></tr>
+      <tr><td><code>connection_type</code></td><td><code>ConnectionType</code></td><td>Type of active connection</td></tr>
+    </table>
+
+    <h3>Functions</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">status</span>() -> <span class="type">Result&lt;NetworkStatus, String&gt;</span></div>
+      <div class="desc">Get current network status from NetworkManager.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_change</span>(cb: <span class="type">impl Fn(NetworkStatus) + Send + 'static</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Register a callback for network status changes.</div>
+    </div>
+  </section>
+
+  <!-- ─── power ─── -->
+  <section id="power">
+    <h2>power</h2>
+    <p>Battery status via UPower D-Bus.</p>
+    <pre><code class="language-rust">use helium::services::power;
+
+for battery in power::batteries()? {
+    println!("{}% {}", battery.percentage, if battery.charging { "charging" } else { "discharging" });
+}</code></pre>
+
+    <h3>Types</h3>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Battery</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>percentage</code></td><td><code>f32</code></td><td>Battery charge percentage 0.0–100.0</td></tr>
+      <tr><td><code>charging</code></td><td><code>bool</code></td><td>Whether the battery is currently charging</td></tr>
+      <tr><td><code>time_to_empty</code></td><td><code>Option&lt;Duration&gt;</code></td><td>Estimated time until battery is empty (discharging only)</td></tr>
+      <tr><td><code>time_to_full</code></td><td><code>Option&lt;Duration&gt;</code></td><td>Estimated time until battery is full (charging only)</td></tr>
+    </table>
+
+    <h3>Functions</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">batteries</span>() -> <span class="type">Result&lt;Vec&lt;Battery&gt;, String&gt;</span></div>
+      <div class="desc">Get current battery states from UPower.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_change</span>(cb: <span class="type">impl Fn(Vec&lt;Battery&gt;) + Send + 'static</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Register a callback for battery state changes.</div>
+    </div>
+  </section>
+
+  <!-- ─── powerprofiles ─── -->
+  <section id="powerprofiles">
+    <h2>powerprofiles</h2>
+    <p>Power profile management via power-profiles-daemon D-Bus.</p>
+    <pre><code class="language-rust">use helium::services::powerprofiles;
+
+let profile = powerprofiles::active()?;
+powerprofiles::set(powerprofiles::Profile::PowerSaver)?;</code></pre>
+
+    <h3>Types</h3>
+    <div class="type-header"><span class="keyword">enum</span> <span class="type-name">Profile</span></div>
+    <table>
+      <tr><th>Variant</th><th>Description</th></tr>
+      <tr><td><code>Performance</code></td><td>Maximum performance, higher power consumption</td></tr>
+      <tr><td><code>Balanced</code></td><td>Default balanced profile</td></tr>
+      <tr><td><code>PowerSaver</code></td><td>Low power consumption, reduced performance</td></tr>
+    </table>
+
+    <h3>Functions</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">active</span>() -> <span class="type">Result&lt;Profile, String&gt;</span></div>
+      <div class="desc">Get the active power profile.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set</span>(profile: <span class="type">Profile</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Set the active power profile.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_change</span>(cb: <span class="type">impl Fn(Profile) + Send + 'static</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Register a callback for profile changes.</div>
+    </div>
+  </section>
+
+  <!-- ─── time ─── -->
+  <section id="time">
+    <h2>time</h2>
+    <p>Current local time formatting via <code>chrono</code>. Always available (no feature gate).</p>
+    <pre><code class="language-rust">use helium::services::time;
+
+let now = time::now();
+let formatted = time::formatted("%H:%M:%S");</code></pre>
+
+    <h3>Functions</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">now</span>() -> <span class="type">chrono::DateTime&lt;Local&gt;</span></div>
+      <div class="desc">Get the current local time.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">formatted</span>(fmt: <span class="type">&amp;str</span>) -> <span class="type">String</span></div>
+      <div class="desc">Format the current local time using a strftime format string (e.g. <code>"%H:%M"</code>).</div>
+    </div>
+  </section>
+</main>
+
+</div>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

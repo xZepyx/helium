@@ -10,180 +10,23 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js"></script>
-<style>
-:root {
-  --bg: #0d0d0d;
-  --surface: #111;
-  --border: #1a1a1a;
-  --border-hover: #333;
-  --text: #c8c8c8;
-  --text-dim: #555;
-  --accent: #76b900;
-  --accent-dim: #3a5c00;
-  --font-sans: 'Space Grotesk', system-ui, sans-serif;
-  --font-mono: 'Space Mono', monospace;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: var(--font-sans);
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-::selection { background: rgba(118, 185, 0, 0.2); }
-::-webkit-scrollbar { width: 7px; height: 7px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #222; }
-*:focus-visible { outline: 1px dashed rgba(255,255,255,0.2); outline-offset: 2px; }
-
-nav {
-  position: fixed;
-  top: 0; left: 0; bottom: 0;
-  width: 240px;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  padding: 24px 0;
-  overflow-y: auto;
-  z-index: 10;
-}
-nav h1 {
-  font-size: 13px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  padding: 0 20px 20px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 12px;
-  letter-spacing: 0.05em;
-}
-nav h1 a { color: var(--accent); text-decoration: none; }
-nav a {
-  display: block;
-  padding: 6px 20px;
-  color: var(--text-dim);
-  text-decoration: none;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  transition: color .15s;
-}
-nav a:hover, nav a.active { color: var(--text); }
-main {
-  margin-left: 240px;
-  max-width: 720px;
-  padding: 48px 40px 120px;
-}
-section { margin-bottom: 80px; }
-
-.hero {
-  padding: 32px 0 28px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 56px;
-}
-.hero h1 {
-  font-size: 36px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 8px;
-  letter-spacing: 0.05em;
-}
-.hero p {
-  font-size: 13px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-}
-
-h2 {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--text);
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
-h3 {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-dim);
-  margin-top: 28px;
-  margin-bottom: 8px;
-}
-p { font-size: 13px; margin-bottom: 16px; color: var(--text); line-height: 1.7; }
-code {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  background: var(--surface);
-  padding: 2px 6px;
-  color: #ddd;
-}
-pre {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 16px;
-  margin-bottom: 20px;
-  overflow-x: auto;
-}
-pre code { background: none; padding: 0; font-size: 12px; }
-.hljs { background: transparent !important; }
-a { color: var(--accent); text-decoration: none; transition: color .15s; }
-a:hover { color: #a0ff30; }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-  font-size: 12px;
-}
-th, td {
-  text-align: left;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
-}
-th { color: var(--text-dim); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
-td { color: var(--text); font-size: 12px; }
-
-.env-var {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--accent);
-}
-
-/* Mechanical click */
-@keyframes mechClick {
-  0% { transform: scale(1); }
-  40% { transform: scale(0.85); }
-  70% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-.mech-click:active { animation: mechClick 0.2s ease-out; }
-
-@media (max-width: 720px) {
-  nav { position: static; width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 16px 0; }
-  nav h1 { padding: 0 16px 16px; }
-  nav a { padding: 6px 16px; }
-  main { margin-left: 0; padding: 24px 16px 80px; }
-  .hero h1 { font-size: 24px; }
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="wrapper">
 
 <nav>
-  <h1><a href="#">Helium</a></h1>
-  <a href="#getting-started">Getting Started</a>
-  <a href="#api">API</a>
-  <a href="#config">Config</a>
-  <a href="#services">Services</a>
-  <a href="#compositors">Compositors</a>
-  <a href="#adapters">Adapters</a>
+  <div class="logo"><a href="index.html">Helium</a></div>
+  <span class="nav-section">Overview</span>
+  <a href="index.html" class="page-link active">Getting Started</a>
+  <span class="nav-section">Reference</span>
+  <a href="api.html" class="page-link">API</a>
+  <a href="config.html" class="page-link">Config</a>
+  <a href="services.html" class="page-link">Services</a>
+  <a href="compositors.html" class="page-link">Compositors</a>
+  <a href="adapters.html" class="page-link">Adapters</a>
+  <span class="nav-section">Resources</span>
+  <a href="examples.html" class="page-link">Examples</a>
 </nav>
 
 <main>
@@ -192,151 +35,78 @@ td { color: var(--text); font-size: 12px; }
     <p>A modern Wayland shell library wrapping layer-shika</p>
   </div>
 
-  <section id="getting-started">
-    <h2>Getting Started</h2>
-    <p>Add Helium to your Cargo.toml:</p>
+  <section>
+    <h2>What is Helium?</h2>
+    <p>
+      Helium is a Rust library for building Wayland shell surfaces — bars,
+      panels, overlays, and widgets — with minimal boilerplate. It wraps
+      <code>layer-shika</code> and exposes a fluent builder API, a
+      configuration macro, compositor auto-detection, and an adapter system
+      for wiring state to UI properties.
+    </p>
+  </section>
+
+  <section>
+    <h2>Features</h2>
+    <table>
+      <tr><th>Feature</th><th>Description</th></tr>
+      <tr><td>Fluent builder API</td><td><code>Helium::from_file("ui.slint").surface("bar").size(1920, 42).exclusive().build()</code></td></tr>
+      <tr><td><code>helium_config!</code></td><td>Declare typed config structs with defaults in a DSL — generates serde parsing, <code>Default</code>, and a <code>load(path)</code> method</td></tr>
+      <tr><td>Compositor detection</td><td>Auto-detect Hyprland, Niri, Sway, or MangoWM from environment variables</td></tr>
+      <tr><td>Adapter system</td><td>Plug-in adapters (<code>ClockAdapter</code>, <code>WorkspacesAdapter</code>) that set surface properties on tick/event</td></tr>
+      <tr><td>System services</td><td>Free-function wrappers for audio, backlight, Bluetooth, network, power, power profiles, and time</td></tr>
+      <tr><td>D-Bus backends</td><td>Optional <code>services</code> feature enables zbus-based backends for audio, Bluetooth, network, power, and power-profiles-daemon</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Quick Start</h2>
+    <p>Add Helium to your <code>Cargo.toml</code>:</p>
     <pre><code class="language-toml">[dependencies]
 helium = "0.1"</code></pre>
-    <p>Create a bar surface:</p>
-    <pre><code class="language-rust">use helium::{
-    helium_config, AnchorEdge, Helium,
-    adapters::{self, ClockAdapter, WorkspacesAdapter},
-};
 
-helium_config! {
-    HeliumConfig {
-        bar: {
-            height: u32 = 42,
-            modules: {
-                clock: {
-                    format: String = "%H:%M",
-                },
-                workspaces: {
-                    max: u8 = 9,
-                },
-            },
-        },
+    <p>Define your UI in a <code>.slint</code> file:</p>
+    <pre><code class="language-slint">// my-bar.slint
+export component Bar {
+    width: 1920px;
+    height: 42px;
+    in property &lt;string&gt; title;
+    Rectangle {
+        background: #141414;
+        Text { text: title; color: #d4d4d4;
+               vertical-alignment: center;
+               horizontal-alignment: center; }
     }
-}
+}</code></pre>
+
+    <p>Create the surface in Rust:</p>
+    <pre><code class="language-rust">use helium::{AnchorEdge, Helium};
 
 fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
-    let config = HeliumConfig::load("config.json").unwrap_or_default();
-    let helium = Helium::from_config(config)?;
-
-    let _surface = helium
-        .surface("heliumbar")
+    let mut runtime = Helium::from_file("my-bar.slint")
+        .surface("main")
         .size(1920, 42)
         .anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right))
         .exclusive()
         .build()?;
 
-    let _registry = adapters! {
-        "clock" => ClockAdapter { format: "%H:%M".into(), ..Default::default() },
-        "workspaces" => WorkspacesAdapter { max: 9 },
-    };
-
+    runtime.run()?;
     Ok(())
 }</code></pre>
   </section>
 
-  <section id="api">
-    <h2>API</h2>
-    <p>Position surfaces on screen edges using tuples of <code>AnchorEdge</code> values.</p>
-    <pre><code class="language-rust">use helium::AnchorEdge;
-
-surface.anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right));
-surface.anchor((AnchorEdge::Bottom, AnchorEdge::Left));
-surface.anchor((AnchorEdge::Top, AnchorEdge::Bottom, AnchorEdge::Left, AnchorEdge::Right));</code></pre>
-    <p>The <code>IntoAnchorEdges</code> trait converts tuples of 1–4 values into <code>layer_shika::AnchorEdges</code> internally. The full <code>layer-shika</code> API is accessible through <code>helium::raw</code> when you need an escape hatch.</p>
-  </section>
-
-  <section id="config">
-    <h2>Config</h2>
-    <p>Use <code>helium_config!</code> to declare typed config structs with defaults.</p>
-    <pre><code class="language-rust">helium_config! {
-    HeliumConfig {
-        bar: {
-            height: u32 = 42,
-            modules: {
-                clock: {
-                    format: String = "%H:%M",
-                    interval_ms: u64 = 1000,
-                },
-            },
-        },
-    }
-}
-
-let config = HeliumConfig::load("bar.json")?;</code></pre>
-    <p>Nested types derive <code>Debug</code>, <code>Clone</code>, <code>serde::Deserialize</code>, and <code>Default</code>. Missing JSON fields fall back to defaults.</p>
-  </section>
-
-  <section id="services">
-    <h2>Services</h2>
-    <p>Free-function wrappers for common system services.</p>
-    <pre><code class="language-rust">use helium::services::{audio, backlight, power, time};
-
-let now = time::formatted("%H:%M");
-let brightness = backlight::brightness()?;
-let batteries = power::batteries()?;</code></pre>
-    <table>
-      <tr><th>Module</th><th>Backend</th></tr>
-      <tr><td><code>audio</code></td><td>PipeWire / PulseAudio</td></tr>
-      <tr><td><code>backlight</code></td><td>sysfs (<code>/sys/class/backlight</code>)</td></tr>
-      <tr><td><code>bluetooth</code></td><td>BlueZ (D-Bus)</td></tr>
-      <tr><td><code>network</code></td><td>NetworkManager (D-Bus)</td></tr>
-      <tr><td><code>power</code></td><td>UPower (D-Bus)</td></tr>
-      <tr><td><code>powerprofiles</code></td><td>power-profiles-daemon (D-Bus)</td></tr>
-      <tr><td><code>time</code></td><td>chrono</td></tr>
-    </table>
-  </section>
-
-  <section id="compositors">
-    <h2>Compositors</h2>
-    <p>Auto-detect and communicate with your compositor via IPC.</p>
-    <pre><code class="language-rust">use helium::compositors;
-
-let mut compositor = compositors::detect()?;
-println!("{:?}", compositor.workspaces());</code></pre>
-    <table>
-      <tr><th>Compositor</th><th>Env var</th></tr>
-      <tr><td>Hyprland</td><td><code class="env-var">HYPRLAND_INSTANCE_SIGNATURE</code></td></tr>
-      <tr><td>Niri</td><td><code class="env-var">NIRI_SOCKET</code></td></tr>
-      <tr><td>Sway</td><td><code class="env-var">SWAYSOCK</code></td></tr>
-    </table>
-  </section>
-
-  <section id="adapters">
-    <h2>Adapters</h2>
-    <p>Wire config to surface properties via the <code>Adapter</code> trait.</p>
-    <pre><code class="language-rust">use helium::adapters::{Adapter, AdapterCtx, ShellEvent};
-
-struct MyAdapter;
-
-impl Adapter for MyAdapter {
-    fn tick(&mut self, ctx: &mut AdapterCtx) {
-        ctx.set("my_prop", "hello");
-    }
-}</code></pre>
-    <p>Built-in: <code>ClockAdapter</code> (sets <code>clock_text</code>), <code>WorkspacesAdapter</code> (sets <code>workspaces</code> and <code>active_workspace</code>).</p>
+  <section>
+    <h2>Ecosystem</h2>
+    <p>
+      Helium is built on <code>layer-shika</code>, a Rust binding for the
+      <a href="https://layershell-qt.org">Layer Shell</a> protocol
+      (<code>zwlr_layer_shell_v1</code>). It uses
+      <a href="https://slint.dev">Slint</a> for declarative UI definitions.
+    </p>
   </section>
 </main>
 
-<script>
-document.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
-
-const sections = document.querySelectorAll('section');
-const links = document.querySelectorAll('nav a[href^="#"]');
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      links.forEach(l => l.classList.remove('active'));
-      const link = document.querySelector(`nav a[href="#${entry.target.id}"]`);
-      if (link) link.classList.add('active');
-    }
-  });
-}, { rootMargin: '-50% 0px -50% 0px' });
-sections.forEach(s => observer.observe(s));
-</script>
+</div>
+<script>hljs.highlightAll();</script>
 </body>
 </html>

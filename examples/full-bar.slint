@@ -1,0 +1,65 @@
+import { MinimalBar } from "./minimal-bar.slint";
+import { ClockBar } from "./clock-bar.slint";
+import { WorkspaceBar } from "./workspace-bar.slint";
+
+export component FullBar {
+    width: 1920px;
+    height: 42px;
+
+    in property <string> label;
+    in property <string> clock_text;
+    in property <int> active_workspace;
+    in property <string> workspace_1;
+    in property <string> workspace_2;
+    in property <string> workspace_3;
+    in property <string> workspace_4;
+    in property <string> workspace_5;
+
+    Rectangle {
+        background: #0d0d0d;
+
+        HorizontalLayout {
+            padding: 0;
+            spacing: 0;
+
+            WorkspaceBar {
+                width: 180px;
+                height: 42px;
+                active_workspace: active_workspace;
+                workspace_1: workspace_1;
+                workspace_2: workspace_2;
+                workspace_3: workspace_3;
+                workspace_4: workspace_4;
+                workspace_5: workspace_5;
+            }
+
+            Rectangle {
+                width: 0px;
+                height: 26px;
+                border: 1px solid #222;
+                border-top: 0px;
+                border-bottom: 0px;
+            }
+
+            MinimalBar {
+                width: 1200px;
+                height: 42px;
+                label: label;
+            }
+
+            Rectangle {
+                width: 0px;
+                height: 26px;
+                border: 1px solid #222;
+                border-top: 0px;
+                border-bottom: 0px;
+            }
+
+            ClockBar {
+                width: 200px;
+                height: 42px;
+                clock_text: clock_text;
+            }
+        }
+    }
+}

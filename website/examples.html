@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examples — Helium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js"></script>
+<!-- Slint syntax is auto-detected by hljs -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrapper">
+
+<nav>
+  <div class="logo"><a href="index.html">Helium</a></div>
+  <span class="nav-section">Overview</span>
+  <a href="index.html" class="page-link">Getting Started</a>
+  <span class="nav-section">Reference</span>
+  <a href="api.html" class="page-link">API</a>
+  <a href="config.html" class="page-link">Config</a>
+  <a href="services.html" class="page-link">Services</a>
+  <a href="compositors.html" class="page-link">Compositors</a>
+  <a href="adapters.html" class="page-link">Adapters</a>
+  <span class="nav-section">Resources</span>
+  <a href="examples.html" class="page-link active">Examples</a>
+</nav>
+
+<main>
+  <div class="hero">
+    <h1>Examples</h1>
+    <p>Slint UI definitions and Rust integrations</p>
+  </div>
+
+  <section>
+    <h2>Running the Examples</h2>
+    <p>
+      All examples are in the <code>examples/</code> directory. Each <code>.slint</code> file
+      defines a reusable UI component. The Rust code loads it via <code>Helium::from_file()</code>.
+    </p>
+    <p>Example structure:</p>
+    <pre><code>examples/
+  minimal-bar.slint     # Simple centered text
+  clock-bar.slint       # Right-aligned clock (Space Mono)
+  workspace-bar.slint   # Workspace indicators
+  full-bar.slint        # Combined layout (imports above)
+  README.md</code></pre>
+  </section>
+
+  <section>
+    <h2>Minimal Bar</h2>
+    <p>A bare-bones bar with a single centered text label.</p>
+    <pre><code class="language-slint">// examples/minimal-bar.slint
+export component MinimalBar {
+    width: 1920px;
+    height: 42px;
+
+    in property &lt;string&gt; label;
+
+    Rectangle {
+        background: #141414;
+        Text {
+            text: label;
+            color: #d4d4d4;
+            font-size: 13px;
+            font-family: "Space Grotesk";
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+    }
+}</code></pre>
+    <pre><code class="language-rust">use helium::{AnchorEdge, Helium};
+
+fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let mut runtime = Helium::from_file("examples/minimal-bar.slint")
+        .surface("Main")      // matches component name
+        .size(1920, 42)
+        .anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right))
+        .exclusive()
+        .build()?;
+
+    runtime.run()?;
+    Ok(())
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Clock Bar</h2>
+    <p>A right-aligned clock display using Space Mono for tabular numerals.</p>
+    <pre><code class="language-slint">// examples/clock-bar.slint
+export component ClockBar {
+    width: 1920px;
+    height: 42px;
+
+    in property &lt;string&gt; clock_text;
+
+    Rectangle {
+        background: #141414;
+        Text {
+            text: clock_text;
+            color: #76b900;
+            font-size: 14px;
+            font-family: "Space Mono";
+            letter-spacing: 0.1em;
+            vertical-alignment: center;
+            horizontal-alignment: right;
+            padding-right: 16px;
+        }
+    }
+}</code></pre>
+    <pre><code class="language-rust">use helium::{
+    AnchorEdge, Helium,
+    adapters::{adapters, ClockAdapter, AdapterRegistry, AdapterCtx},
+};
+
+fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let mut runtime = Helium::from_file("examples/clock-bar.slint")
+        .surface("ClockBar")
+        .size(200, 42)
+        .anchor((AnchorEdge::Top, AnchorEdge::Right))
+        .build()?;
+
+    // The ClockAdapter sets clock_text on each tick
+    let mut ctx = AdapterCtx::_new();
+    let mut registry = AdapterRegistry::new(adapters! {
+        "clock" => ClockAdapter { format: "%H:%M:%S".into(), ..Default::default() },
+    });
+    registry.init_all(&amp;mut ctx);
+
+    runtime.run()?;
+    Ok(())
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Workspace Bar</h2>
+    <p>Workspace indicators with active-state highlighting.</p>
+    <pre><code class="language-slint">// examples/workspace-bar.slint
+export component WorkspaceBar {
+    width: 1920px;
+    height: 42px;
+
+    in property &lt;int&gt; active_workspace;
+    in property &lt;string&gt; workspace_1;
+    in property &lt;string&gt; workspace_2;
+    in property &lt;string&gt; workspace_3;
+    in property &lt;string&gt; workspace_4;
+    in property &lt;string&gt; workspace_5;
+
+    Rectangle {
+        background: #141414;
+        HorizontalLayout {
+            padding: 8px 12px;
+            spacing: 4px;
+
+            Rectangle {
+                width: 28px; height: 26px;
+                background: active_workspace == 1 ? #76b900 : #1f1f1f;
+                border: 1px solid active_workspace == 1 ? #76b900 : #333;
+                Text {
+                    text: workspace_1;
+                    color: active_workspace == 1 ? #0a0a0a : #888;
+                    font-size: 11px;
+                    font-family: "Space Mono";
+                    vertical-alignment: center;
+                    horizontal-alignment: center;
+                }
+            }
+            // ... repeats for workspaces 2-5
+        }
+    }
+}</code></pre>
+    <pre><code class="language-rust">use helium::{
+    AnchorEdge, Helium,
+    adapters::{WorkspacesAdapter},
+};
+
+fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let mut runtime = Helium::from_file("examples/workspace-bar.slint")
+        .surface("WorkspaceBar")
+        .size(180, 42)
+        .anchor((AnchorEdge::Top, AnchorEdge::Left))
+        .build()?;
+
+    runtime.run()?;
+    Ok(())
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Full Bar</h2>
+    <p>A complete bar combining workspaces, a center label, and a clock — using Slint component imports.</p>
+    <pre><code class="language-slint">// examples/full-bar.slint
+import { MinimalBar } from "./minimal-bar.slint";
+import { ClockBar } from "./clock-bar.slint";
+import { WorkspaceBar } from "./workspace-bar.slint";
+
+export component FullBar {
+    width: 1920px;
+    height: 42px;
+
+    in property &lt;string&gt; label;
+    in property &lt;string&gt; clock_text;
+    in property &lt;int&gt; active_workspace;
+    in property &lt;string&gt; workspace_1;
+    in property &lt;string&gt; workspace_2;
+    in property &lt;string&gt; workspace_3;
+    in property &lt;string&gt; workspace_4;
+    in property &lt;string&gt; workspace_5;
+
+    Rectangle {
+        background: #0d0d0d;
+        HorizontalLayout {
+            WorkspaceBar {
+                width: 180px; height: 42px;
+                active_workspace: active_workspace;
+                workspace_1: workspace_1;
+                // ...
+            }
+            MinimalBar {
+                width: 1200px; height: 42px;
+                label: label;
+            }
+            ClockBar {
+                width: 200px; height: 42px;
+                clock_text: clock_text;
+            }
+        }
+    }
+}</code></pre>
+  </section>
+</main>
+
+</div>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
