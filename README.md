@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 Full docs are in the [`docs/`](docs/) directory:
 [Getting Started](docs/getting-started.md),
-[Anchors](docs/anchors.md),
+[API](docs/api.md),
 [Config](docs/config.md),
 [Services](docs/services.md),
 [Compositors](docs/compositors.md),

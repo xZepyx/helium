@@ -84,7 +84,7 @@ Wayland display via `layer-shika` and does not need any special permissions.
 
 ## What's next
 
-- [Anchors](anchors.md) — positioning your surface on screen
+- [API](api.md) — anchors, shell builder, and raw access
 - [Config](config.md) — the `helium_config!` macro and loading
 - [Services](services.md) — audio, backlight, network and more
 - [Compositors](compositors.md) — IPC with your WM
