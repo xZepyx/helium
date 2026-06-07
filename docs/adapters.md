@@ -56,7 +56,7 @@ let adapter = WorkspacesAdapter { max: 5 };
 Use the `adapters!` macro:
 
 ```rust
-use helium::adapters;
+use helium_wsl::adapters;
 
 let mut registry = adapters! {
     "clock" => ClockAdapter { format: "%H:%M".into(), ..Default::default() },
@@ -67,7 +67,7 @@ let mut registry = adapters! {
 Or build an `AdapterRegistry` manually:
 
 ```rust
-use helium::adapters::{AdapterRegistry, ClockAdapter};
+use helium_wsl::adapters::{AdapterRegistry, ClockAdapter};
 
 let mut registry = AdapterRegistry::new(vec![
     ("clock", Box::new(ClockAdapter::default())),
@@ -77,7 +77,7 @@ let mut registry = AdapterRegistry::new(vec![
 ## Writing a custom adapter
 
 ```rust
-use helium::adapters::{Adapter, AdapterCtx, ShellEvent};
+use helium_wsl::adapters::{Adapter, AdapterCtx, ShellEvent};
 
 struct WeatherAdapter {
     api_key: String,

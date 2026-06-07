@@ -74,7 +74,7 @@ export component MinimalBar {
         }
     }
 }</code></pre>
-    <pre><code class="language-rust">use helium::{AnchorEdge, Helium};
+    <pre><code class="language-rust">use helium_wsl::{AnchorEdge, Helium};
 
 fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     let mut runtime = Helium::from_file("examples/minimal-bar.slint")
@@ -113,7 +113,7 @@ export component ClockBar {
         }
     }
 }</code></pre>
-    <pre><code class="language-rust">use helium::{
+    <pre><code class="language-rust">use helium_wsl::{
     AnchorEdge, Helium,
     adapters::{adapters, ClockAdapter, AdapterRegistry, AdapterCtx},
 };
@@ -175,7 +175,7 @@ export component WorkspaceBar {
         }
     }
 }</code></pre>
-    <pre><code class="language-rust">use helium::{
+    <pre><code class="language-rust">use helium_wsl::{
     AnchorEdge, Helium,
     adapters::{WorkspacesAdapter},
 };

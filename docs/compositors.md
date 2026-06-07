@@ -6,7 +6,7 @@ Wayland compositors.
 ## Auto-detection
 
 ```rust
-use helium::compositors;
+use helium_wsl::compositors;
 
 let mut compositor = compositors::detect()?;
 let workspaces = compositor.workspaces();

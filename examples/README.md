@@ -4,7 +4,7 @@ Slint UI definitions for Helium-powered Wayland shell surfaces.
 
 ## Prerequisites
 
-- Rust with the `helium` crate
+- Rust with the `helium-wsl` crate
 - A Wayland compositor (Hyprland, Niri, Sway, etc.)
 
 ## Usage
@@ -13,7 +13,7 @@ Each `.slint` file defines a reusable component. Load them in your Rust
 code via `Helium::from_file`:
 
 ```rust
-use helium::{AnchorEdge, Helium};
+use helium_wsl::{AnchorEdge, Helium};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut runtime = Helium::from_file("examples/minimal-bar.slint")

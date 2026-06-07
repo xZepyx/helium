@@ -8,14 +8,14 @@ Add Helium to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-helium = "0.1"
+helium-wsl = "0.1"
 ```
 
 If you only need the core wrapping (no D-Bus services), disable the default `services` feature:
 
 ```toml
 [dependencies]
-helium = { version = "0.1", default-features = false }
+helium-wsl = { version = "0.1", default-features = false }
 ```
 
 ## Your first shell
@@ -23,7 +23,7 @@ helium = { version = "0.1", default-features = false }
 Create a layer-shell surface with a clock and workspace indicators:
 
 ```rust
-use helium::{
+use helium_wsl::{
     helium_config,
     AnchorEdge,
     Helium,
