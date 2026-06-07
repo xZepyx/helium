@@ -4,31 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Helium — Wayland shell library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js"></script>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg: #0d0d0d;
-  --surface: #141414;
-  --border: #1f1f1f;
+  --surface: #111;
+  --border: #1a1a1a;
+  --border-hover: #333;
   --text: #c8c8c8;
-  --text-dim: #666;
+  --text-dim: #555;
   --accent: #76b900;
-  --accent-dim: #4a7500;
-  --code-bg: #111;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-mono: "SF Mono", "Cascadia Code", "JetBrains Mono", Fira Code, Consolas, monospace;
+  --accent-dim: #3a5c00;
+  --font-sans: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'Space Mono', monospace;
 }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
   font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
-  display: flex;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+::selection { background: rgba(118, 185, 0, 0.2); }
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #222; }
+*:focus-visible { outline: 1px dashed rgba(255,255,255,0.2); outline-offset: 2px; }
+
 nav {
   position: fixed;
   top: 0; left: 0; bottom: 0;
@@ -40,119 +50,127 @@ nav {
   z-index: 10;
 }
 nav h1 {
-  font-size: 18px;
+  font-size: 13px;
+  font-family: var(--font-mono);
   font-weight: 700;
   padding: 0 20px 20px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 12px;
+  letter-spacing: 0.05em;
 }
-nav h1 a {
-  color: var(--accent);
-  text-decoration: none;
-}
+nav h1 a { color: var(--accent); text-decoration: none; }
 nav a {
   display: block;
   padding: 6px 20px;
   color: var(--text-dim);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
   transition: color .15s;
 }
 nav a:hover, nav a.active { color: var(--text); }
-nav .section-label {
-  padding: 16px 20px 4px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-dim);
-  font-weight: 600;
-}
 main {
   margin-left: 240px;
-  max-width: 800px;
+  max-width: 720px;
   padding: 48px 40px 120px;
 }
-section { margin-bottom: 64px; }
-h2 {
-  font-size: 28px;
+section { margin-bottom: 80px; }
+
+.hero {
+  padding: 32px 0 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 56px;
+}
+.hero h1 {
+  font-size: 36px;
+  font-family: var(--font-mono);
   font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+.hero p {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+h2 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text);
   margin-bottom: 16px;
-  color: #eee;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 h3 {
-  font-size: 18px;
+  font-size: 11px;
   font-weight: 600;
-  margin-top: 32px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  margin-top: 28px;
   margin-bottom: 8px;
-  color: #ddd;
 }
-p { margin-bottom: 16px; color: var(--text); }
+p { font-size: 13px; margin-bottom: 16px; color: var(--text); line-height: 1.7; }
 code {
   font-family: var(--font-mono);
-  font-size: 13px;
-  background: var(--code-bg);
+  font-size: 12px;
+  background: var(--surface);
   padding: 2px 6px;
-  border-radius: 3px;
   color: #ddd;
 }
 pre {
-  background: var(--code-bg);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
   padding: 16px;
   margin-bottom: 20px;
   overflow-x: auto;
 }
-pre code { background: none; padding: 0; }
+pre code { background: none; padding: 0; font-size: 12px; }
 .hljs { background: transparent !important; }
-.hero {
-  padding: 40px 0 32px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 48px;
-}
-.hero h1 {
-  font-size: 48px;
-  font-weight: 800;
-  color: #fff;
-  margin-bottom: 8px;
-}
-.hero p {
-  font-size: 18px;
-  color: var(--text-dim);
-  max-width: 500px;
-}
+a { color: var(--accent); text-decoration: none; transition: color .15s; }
+a:hover { color: #a0ff30; }
+
 table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
-  font-size: 14px;
+  font-size: 12px;
 }
 th, td {
   text-align: left;
-  padding: 8px 12px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--border);
 }
-th { color: var(--text-dim); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
-td { color: var(--text); }
+th { color: var(--text-dim); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+td { color: var(--text); font-size: 12px; }
+
 .env-var {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 11px;
   color: var(--accent);
 }
+
+/* Mechanical click */
+@keyframes mechClick {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.85); }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.mech-click:active { animation: mechClick 0.2s ease-out; }
+
 @media (max-width: 720px) {
-  body { flex-direction: column; }
-  nav {
-    position: static;
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    padding: 16px 0;
-  }
+  nav { position: static; width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding: 16px 0; }
   nav h1 { padding: 0 16px 16px; }
   nav a { padding: 6px 16px; }
-  nav .section-label { padding: 12px 16px 4px; }
   main { margin-left: 0; padding: 24px 16px 80px; }
-  .hero h1 { font-size: 32px; }
+  .hero h1 { font-size: 24px; }
 }
 </style>
 </head>
@@ -171,7 +189,7 @@ td { color: var(--text); }
 <main>
   <div class="hero">
     <h1>Helium</h1>
-    <p>A modern Wayland shell library wrapping layer-shika.</p>
+    <p>A modern Wayland shell library wrapping layer-shika</p>
   </div>
 
   <section id="getting-started">
@@ -226,15 +244,10 @@ fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     <p>Position surfaces on screen edges using tuples of <code>AnchorEdge</code> values.</p>
     <pre><code class="language-rust">use helium::AnchorEdge;
 
-// Top bar
 surface.anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right));
-
-// Bottom-left corner
 surface.anchor((AnchorEdge::Bottom, AnchorEdge::Left));
-
-// Full screen
 surface.anchor((AnchorEdge::Top, AnchorEdge::Bottom, AnchorEdge::Left, AnchorEdge::Right));</code></pre>
-    <p>The <code>IntoAnchorEdges</code> trait is implemented for tuples of 1–4 values and converts to <code>layer_shika::AnchorEdges</code> internally.</p>
+    <p>The <code>IntoAnchorEdges</code> trait converts tuples of 1–4 values into <code>layer_shika::AnchorEdges</code> internally. The full <code>layer-shika</code> API is accessible through <code>helium::raw</code> when you need an escape hatch.</p>
   </section>
 
   <section id="config">
@@ -254,9 +267,8 @@ surface.anchor((AnchorEdge::Top, AnchorEdge::Bottom, AnchorEdge::Left, AnchorEdg
     }
 }
 
-// Load from JSON, missing fields get defaults
 let config = HeliumConfig::load("bar.json")?;</code></pre>
-    <p>Nested structs are generated with names like <code>HeliumConfigBarModulesClock</code>. All types derive <code>Debug</code>, <code>Clone</code>, <code>serde::Deserialize</code>, and <code>Default</code>.</p>
+    <p>Nested types derive <code>Debug</code>, <code>Clone</code>, <code>serde::Deserialize</code>, and <code>Default</code>. Missing JSON fields fall back to defaults.</p>
   </section>
 
   <section id="services">
@@ -266,8 +278,7 @@ let config = HeliumConfig::load("bar.json")?;</code></pre>
 
 let now = time::formatted("%H:%M");
 let brightness = backlight::brightness()?;
-let batteries = power::batteries()?;
-let volume = audio::volume()?;</code></pre>
+let batteries = power::batteries()?;</code></pre>
     <table>
       <tr><th>Module</th><th>Backend</th></tr>
       <tr><td><code>audio</code></td><td>PipeWire / PulseAudio</td></tr>
@@ -307,14 +318,13 @@ impl Adapter for MyAdapter {
         ctx.set("my_prop", "hello");
     }
 }</code></pre>
-    <p>Built-in adapters: <code>ClockAdapter</code> (sets <code>clock_text</code>), <code>WorkspacesAdapter</code> (sets <code>workspaces</code> and <code>active_workspace</code>).</p>
+    <p>Built-in: <code>ClockAdapter</code> (sets <code>clock_text</code>), <code>WorkspacesAdapter</code> (sets <code>workspaces</code> and <code>active_workspace</code>).</p>
   </section>
 </main>
 
 <script>
 document.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
 
-// Active nav highlighting on scroll
 const sections = document.querySelectorAll('section');
 const links = document.querySelectorAll('nav a[href^="#"]');
 const observer = new IntersectionObserver(entries => {
