@@ -1,10 +1,10 @@
 [package]
-name = "helium-macros"
+name = "helium-wsl-macros"
 version = "0.1.0"
 edition = "2021"
-description = "Proc macros for the Helium Wayland shell library"
+description = "Proc macros for the helium-wsl library"
 license = "MIT"
-repository = "https://github.com/nucleus-hq/helium"
+repository = "https://github.com/xZepyx/helium"
 
 [lib]
 proc-macro = true

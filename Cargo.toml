@@ -1,10 +1,13 @@
 [package]
-name = "helium"
+name = "helium-wsl"
 version = "0.1.0"
 edition = "2021"
 description = "A modern Wayland shell library wrapping layer-shika"
 license = "MIT"
-repository = "https://github.com/nucleus-hq/helium"
+repository = "https://github.com/xZepyx/helium"
+readme = "README.md"
+keywords = ["wayland", "shell", "slint", "hyprland", "layer-shell"]
+categories = ["gui", "os::linux-apis"]
 
 [dependencies]
 layer-shika = "0.3"
@@ -14,7 +17,7 @@ thiserror = "1"
 chrono = "0.4"
 zbus = { version = "4", optional = true }
 inotify = { version = "0.10", optional = true }
-helium-macros = { path = "./helium-macros", version = "0.1.0" }
+helium-wsl-macros = { path = "./helium-macros", version = "0.1.0" }
 
 [features]
 default = ["services"]
