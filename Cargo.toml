@@ -1,6 +1,6 @@
 [package]
 name = "helium-wsl"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "A modern Wayland shell library wrapping layer-shika"
 license = "MIT"
