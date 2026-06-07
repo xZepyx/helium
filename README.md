@@ -1,7 +1,7 @@
 # Helium
 
 A modern Wayland shell library wrapping `layer-shika`. Helium gives you a
-cleaner anchor API, a macro-based config system, compositor auto-detection,
+cleaner api, a macro-based config system, compositor auto-detection,
 system service wrappers, and an adapter system for wiring config to Slint UI
 properties.
 
