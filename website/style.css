@@ -85,8 +85,13 @@ nav a.page-link.active {
 main {
   margin-left: 220px;
   flex: 1;
-  max-width: 920px;
-  padding: 56px 64px 120px;
+  display: flex;
+  justify-content: center;
+  padding: 56px 2rem 120px;
+}
+main > .content {
+  width: 100%;
+  max-width: 860px;
 }
 
 /* ── Hero ── */
