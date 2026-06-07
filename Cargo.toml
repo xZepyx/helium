@@ -1,0 +1,24 @@
+[package]
+name = "helium"
+version = "0.1.0"
+edition = "2021"
+description = "A modern Wayland shell library wrapping layer-shika"
+license = "MIT"
+repository = "https://github.com/nucleus-hq/helium"
+
+[dependencies]
+layer-shika = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+chrono = "0.4"
+zbus = { version = "4", optional = true }
+inotify = { version = "0.10", optional = true }
+helium-macros = { path = "./helium-macros", version = "0.1.0" }
+
+[features]
+default = ["services"]
+services = ["zbus", "inotify"]
+
+[workspace]
+members = [".", "helium-macros"]
