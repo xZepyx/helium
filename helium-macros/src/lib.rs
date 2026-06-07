@@ -176,12 +176,37 @@ fn gen_load_method(root: &StructDef) -> proc_macro2::TokenStream {
         impl #name {
             /// Load config from a JSON file.
             ///
-            /// Any fields not present in the file will use their default values
-            /// (deserialization uses `#[serde(default)]` on the struct).
+            /// If the file does not exist, the default config is written to
+            /// the path (creating parent directories as needed) and returned.
+            /// If the file exists but contains invalid JSON, a parse error is
+            /// returned.
             pub fn load(path: impl AsRef<std::path::Path>) -> Result<Self, helium::ConfigError> {
-                let content = std::fs::read_to_string(path.as_ref()).map_err(helium::ConfigError::reading)?;
-                let config: Self = serde_json::from_str(&content).map_err(helium::ConfigError::parsing)?;
-                Ok(config)
+                match std::fs::read_to_string(path.as_ref()) {
+                    Ok(content) => {
+                        serde_json::from_str(&content).map_err(helium::ConfigError::parsing)
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                        if let Some(parent) = path.as_ref().parent() {
+                            let _ = std::fs::create_dir_all(parent);
+                        }
+                        let default = Self::default();
+                        if let Ok(json) = serde_json::to_string_pretty(&default) {
+                            let _ = std::fs::write(path.as_ref(), json);
+                        }
+                        Ok(default)
+                    }
+                    Err(e) => Err(helium::ConfigError::reading(e)),
+                }
+            }
+
+            /// Save config to a JSON file, creating parent directories if needed.
+            pub fn save(&self, path: impl AsRef<std::path::Path>) -> Result<(), helium::ConfigError> {
+                if let Some(parent) = path.as_ref().parent() {
+                    std::fs::create_dir_all(parent).map_err(helium::ConfigError::reading)?;
+                }
+                let content = serde_json::to_string_pretty(self).map_err(helium::ConfigError::parsing)?;
+                std::fs::write(path.as_ref(), content).map_err(helium::ConfigError::reading)?;
+                Ok(())
             }
         }
     }

@@ -18,11 +18,11 @@ helium = "0.1"
 ```rust
 use helium::{
     helium_config, AnchorEdge, Helium,
-    adapters::{self, ClockAdapter, WorkspacesAdapter},
+    adapters::{ClockAdapter, WorkspacesAdapter},
 };
 
 helium_config! {
-    HeliumConfig {
+    Config {
         bar: {
             height: u32 = 42,
             modules: {
@@ -38,21 +38,16 @@ helium_config! {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let config = HeliumConfig::load("config.json").unwrap_or_default();
-    let helium = Helium::from_config(config)?;
+    let config = Config::load("config.json")?;
 
-    let _surface = helium
-        .surface("heliumbar")
+    let mut runtime = Helium::from_file("bar.slint")
+        .surface("main")
         .size(1920, 42)
         .anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right))
         .exclusive()
         .build()?;
 
-    let _registry = adapters! {
-        "clock" => ClockAdapter { format: "%H:%M".into(), ..Default::default() },
-        "workspaces" => WorkspacesAdapter { max: 9 },
-    };
-
+    runtime.run()?;
     Ok(())
 }
 ```

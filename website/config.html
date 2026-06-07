@@ -74,7 +74,7 @@
     <h2>Generated Code</h2>
     <p>For this input:</p>
     <pre><code class="language-rust">helium_config! {
-    HeliumConfig {
+    Config {
         bar: {
             height: u32 = 42,
             modules: {
@@ -89,45 +89,71 @@
 
     <p>The macro generates:</p>
     <pre><code class="language-rust">#[derive(Debug, Clone, serde::Deserialize)]
-pub struct HeliumConfig {
+pub struct Config {
     #[serde(default)]
-    pub bar: HeliumConfigBar,
+    pub bar: ConfigBar,
 }
 
-impl Default for HeliumConfig {
-    fn default() -> Self { HeliumConfig { bar: Default::default() } }
+impl Default for Config {
+    fn default() -> Self { Config { bar: Default::default() } }
 }
 
-impl HeliumConfig {
+impl Config {
     pub fn load(path: impl AsRef&lt;std::path::Path&gt;) -> Result&lt;Self, ConfigError&gt; {
-        let content = std::fs::read_to_string(path)?;
-        let config = serde_json::from_str(&amp;content)?;
-        Ok(config)
+        match std::fs::read_to_string(path.as_ref()) {
+            Ok(content) =&gt; serde_json::from_str(&amp;content)
+                .map_err(ConfigError::parsing),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound =&gt; {
+                if let Some(parent) = path.as_ref().parent() {
+                    let _ = std::fs::create_dir_all(parent);
+                }
+                let default = Self::default();
+                if let Ok(json) = serde_json::to_string_pretty(&amp;default) {
+                    let _ = std::fs::write(path.as_ref(), json);
+                }
+                Ok(default)
+            }
+            Err(e) =&gt; Err(ConfigError::reading(e)),
+        }
+    }
+
+    pub fn save(&amp;self, path: impl AsRef&lt;std::path::Path&gt;) -> Result&lt;(), ConfigError&gt; {
+        if let Some(parent) = path.as_ref().parent() {
+            std::fs::create_dir_all(parent).map_err(ConfigError::reading)?;
+        }
+        let content = serde_json::to_string_pretty(self)
+            .map_err(ConfigError::parsing)?;
+        std::fs::write(path.as_ref(), content)
+            .map_err(ConfigError::reading)?;
+        Ok(())
     }
 }
 
 #[derive(Debug, Clone, serde::Deserialize)]
-pub struct HeliumConfigBar {
+pub struct ConfigBar {
     #[serde(default)]
     pub height: u32,
     #[serde(default)]
-    pub modules: HeliumConfigBarModules,
+    pub modules: ConfigBarModules,
 }
 
 // ... nested structs continue ...
 
-impl Default for HeliumConfigBar {
+impl Default for ConfigBar {
     fn default() -> Self {
-        HeliumConfigBar { height: 42, modules: Default::default() }
+        ConfigBar { height: 42, modules: Default::default() }
     }
 }</code></pre>
   </section>
 
   <section>
     <h2>Usage</h2>
-    <pre><code class="language-rust">let config = HeliumConfig::load("bar.json")?;
+    <pre><code class="language-rust">let config = Config::load("bar.json")?;
 println!("bar height: {}", config.bar.height);
-println!("clock format: {}", config.bar.modules.clock.format);</code></pre>
+println!("clock format: {}", config.bar.modules.clock.format);
+
+// Save modified config back
+config.save("bar.json")?;</code></pre>
 
     <p>Example <code>bar.json</code>:</p>
     <pre><code class="language-json">{
@@ -142,7 +168,7 @@ println!("clock format: {}", config.bar.modules.clock.format);</code></pre>
 }</code></pre>
 
     <div class="callout">
-      Missing fields fall back to their defaults — only <code>interval_ms</code> uses the default of <code>1000</code> in this example.
+      Missing fields fall back to their defaults. If the file doesn't exist, <code>load()</code> creates the parent directories, writes the default config, and returns it. Use <code>save()</code> to write changes back.
     </div>
   </section>
 
