@@ -26,4 +26,4 @@ impl ConfigError {
 /// The macro generates a config struct with whatever name you give it
 /// (typically `Config`). All generated types are re-exported here.
 #[doc(inline)]
-pub use helium_macros::*;
+pub use helium_wsl_macros::*;
