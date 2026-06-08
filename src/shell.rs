@@ -1,6 +1,10 @@
+use std::cell::RefCell;
+use std::os::unix::io::AsFd;
 use std::path::Path;
+use std::time::Duration;
 
 use layer_shika::prelude::*;
+use layer_shika::calloop::{Interest, Mode};
 
 use crate::anchor::IntoAnchorEdges;
 use crate::HeliumError;
@@ -52,13 +56,16 @@ impl HeliumBuilder {
     pub fn surface(self, name: &str) -> HeliumSurfaceBuilder {
         HeliumSurfaceBuilder {
             inner: self.inner.surface(name),
+            width: None,
+            height: None,
+            exclusive_flag: false,
         }
     }
 
     /// Build the shell directly (uses a default "Main" surface).
     pub fn build(self) -> std::result::Result<HeliumRuntime, HeliumError> {
         let shell = self.inner.build().map_err(|e| HeliumError::Shell(e.to_string()))?;
-        Ok(HeliumRuntime { inner: shell })
+        Ok(HeliumRuntime { inner: shell, ready_cb: None })
     }
 }
 
@@ -69,30 +76,46 @@ impl HeliumBuilder {
 /// `.build()` / `.run()` to finish.
 pub struct HeliumSurfaceBuilder {
     inner: SurfaceConfigBuilder,
+    width: Option<u32>,
+    height: Option<u32>,
+    exclusive_flag: bool,
 }
 
 impl HeliumSurfaceBuilder {
     /// Start configuring a new surface, finalizing the current one.
-    pub fn surface(self, name: &str) -> Self {
+    pub fn surface(mut self, name: &str) -> Self {
+        if self.exclusive_flag {
+            let zone = self.height.or(self.width).unwrap_or(0) as i32;
+            if zone != 0 {
+                self.inner = self.inner.exclusive_zone(zone);
+            }
+        }
         HeliumSurfaceBuilder {
             inner: self.inner.surface(name),
+            width: None,
+            height: None,
+            exclusive_flag: false,
         }
     }
 
     /// Set the surface height.
     pub fn height(mut self, h: u32) -> Self {
+        self.height = Some(h);
         self.inner = self.inner.height(h);
         self
     }
 
     /// Set the surface width.
     pub fn width(mut self, w: u32) -> Self {
+        self.width = Some(w);
         self.inner = self.inner.width(w);
         self
     }
 
     /// Set both width and height.
     pub fn size(mut self, w: u32, h: u32) -> Self {
+        self.width = Some(w);
+        self.height = Some(h);
         self.inner = self.inner.size(w, h);
         self
     }
@@ -107,7 +130,8 @@ impl HeliumSurfaceBuilder {
     ///
     /// Call after setting width/height. The non-zero dimension is used as
     /// the exclusive zone.
-    pub fn exclusive(self) -> Self {
+    pub fn exclusive(mut self) -> Self {
+        self.exclusive_flag = true;
         self
     }
 
@@ -135,13 +159,25 @@ impl HeliumSurfaceBuilder {
     }
 
     /// Build the shell and return a runtime handle.
-    pub fn build(self) -> std::result::Result<HeliumRuntime, HeliumError> {
+    pub fn build(mut self) -> std::result::Result<HeliumRuntime, HeliumError> {
+        if self.exclusive_flag {
+            let zone = self.height.or(self.width).unwrap_or(0) as i32;
+            if zone != 0 {
+                self.inner = self.inner.exclusive_zone(zone);
+            }
+        }
         let shell = self.inner.build().map_err(|e| HeliumError::Shell(e.to_string()))?;
-        Ok(HeliumRuntime { inner: shell })
+        Ok(HeliumRuntime { inner: shell, ready_cb: None })
     }
 
     /// Build and run the shell event loop (blocks).
-    pub fn run(self) -> std::result::Result<(), HeliumError> {
+    pub fn run(mut self) -> std::result::Result<(), HeliumError> {
+        if self.exclusive_flag {
+            let zone = self.height.or(self.width).unwrap_or(0) as i32;
+            if zone != 0 {
+                self.inner = self.inner.exclusive_zone(zone);
+            }
+        }
         let mut shell = self.inner.build().map_err(|e| HeliumError::Shell(e.to_string()))?;
         shell.run().map_err(|e| HeliumError::Shell(e.to_string()))
     }
@@ -150,11 +186,223 @@ impl HeliumSurfaceBuilder {
 /// A running Helium shell instance.
 pub struct HeliumRuntime {
     inner: Shell,
+    ready_cb: Option<Box<dyn FnOnce(&mut HeliumRuntime) + 'static>>,
+}
+
+/// Trait for values that can be converted into Slint property values.
+///
+/// Implemented for all common Rust types so you can pass plain values
+/// to [`HeliumRuntime::set`] and [`TickContext::set`].
+pub trait IntoSlintValue {
+    fn into_slint_value(self) -> slint_interpreter::Value;
+}
+
+impl IntoSlintValue for f64 {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::Number(self)
+    }
+}
+impl IntoSlintValue for f32 {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::Number(self as f64)
+    }
+}
+impl IntoSlintValue for u8 {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::Number(self as f64)
+    }
+}
+impl IntoSlintValue for u16 {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::Number(self as f64)
+    }
+}
+impl IntoSlintValue for u32 {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::Number(self as f64)
+    }
+}
+impl IntoSlintValue for u64 {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::Number(self as f64)
+    }
+}
+impl IntoSlintValue for i32 {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::Number(self as f64)
+    }
+}
+impl IntoSlintValue for i64 {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::Number(self as f64)
+    }
+}
+impl IntoSlintValue for bool {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::Bool(self)
+    }
+}
+impl IntoSlintValue for String {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::String(self.into())
+    }
+}
+impl IntoSlintValue for &str {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        slint_interpreter::Value::String(self.into())
+    }
+}
+impl IntoSlintValue for slint_interpreter::Value {
+    fn into_slint_value(self) -> slint_interpreter::Value {
+        self
+    }
+}
+
+/// Lightweight handle passed into [`HeliumRuntime::on_tick`] callbacks.
+pub struct TickContext<'a> {
+    app_state: &'a mut layer_shika_adapters::AppState,
+}
+
+impl TickContext<'_> {
+    /// Set a property on a named surface component.
+    pub fn set(&mut self, surface: &str, prop: &str, value: impl IntoSlintValue) {
+        let value = value.into_slint_value();
+        for s in self.app_state.surfaces_by_name(surface) {
+            s.component_instance()
+                .set_property(prop, value.clone())
+                .unwrap();
+        }
+    }
+
+    /// Read a property from a named surface component.
+    pub fn get(&self, surface: &str, prop: &str) -> Option<slint_interpreter::Value> {
+        self.app_state
+            .surfaces_by_name(surface)
+            .first()
+            .and_then(|s| s.component_instance().get_property(prop).ok())
+    }
+}
+
+/// Lightweight handle passed into [`HeliumRuntime::on_ipc`] callbacks.
+pub struct IpcContext<'a> {
+    app_state: &'a mut layer_shika_adapters::AppState,
+}
+
+impl IpcContext<'_> {
+    /// Set a property on a named surface component.
+    pub fn set(&mut self, surface: &str, prop: &str, value: impl IntoSlintValue) {
+        let value = value.into_slint_value();
+        for s in self.app_state.surfaces_by_name(surface) {
+            s.component_instance()
+                .set_property(prop, value.clone())
+                .unwrap();
+        }
+    }
+
+    /// Read a property from a named surface component.
+    pub fn get(&self, surface: &str, prop: &str) -> Option<slint_interpreter::Value> {
+        self.app_state
+            .surfaces_by_name(surface)
+            .first()
+            .and_then(|s| s.component_instance().get_property(prop).ok())
+    }
 }
 
 impl HeliumRuntime {
     /// Run the event loop (blocks).
+    ///
+    /// If an `on_ready` callback was registered, it fires just before the
+    /// event loop starts.
     pub fn run(&mut self) -> std::result::Result<(), HeliumError> {
+        if let Some(cb) = self.ready_cb.take() {
+            cb(self);
+        }
         self.inner.run().map_err(|e| HeliumError::Shell(e.to_string()))
+    }
+
+    /// Set a property on a named surface component.
+    ///
+    /// The value is converted automatically — no manual `Value` wrapping needed.
+    pub fn set(&mut self, surface: &str, prop: &str, value: impl IntoSlintValue) {
+        self.inner
+            .with_surface(surface, |comp| {
+                comp.set_property(prop, value.into_slint_value()).unwrap();
+            })
+            .unwrap();
+    }
+
+    /// Read a property from a named surface component.
+    ///
+    /// Returns `None` if the surface or property does not exist.
+    pub fn get(&self, surface: &str, prop: &str) -> Option<slint_interpreter::Value> {
+        self.inner
+            .with_surface(surface, |comp| comp.get_property(prop).ok())
+            .ok()
+            .flatten()
+    }
+
+    /// Register a callback to fire once just before the event loop starts.
+    ///
+    /// Use this for initial state setup instead of setting props before
+    /// `.run()`. The callback receives `&mut HeliumRuntime` so you can
+    /// call `set` and `get` directly.
+    pub fn on_ready(
+        &mut self,
+        cb: impl FnOnce(&mut HeliumRuntime) + 'static,
+    ) -> &mut Self {
+        self.ready_cb = Some(Box::new(cb));
+        self
+    }
+
+    /// Register a repeating timer.
+    ///
+    /// The callback receives a [`TickContext`] so you can call `set` directly.
+    pub fn on_tick(
+        &mut self,
+        interval: Duration,
+        cb: impl FnMut(&mut TickContext) + 'static,
+    ) -> std::result::Result<(), HeliumError> {
+        let handle = self.inner.event_loop_handle();
+        let cb = RefCell::new(cb);
+        handle
+            .add_timer(interval, move |_instant, app_state| {
+                let mut ctx = TickContext { app_state };
+                let mut cb = cb.borrow_mut();
+                cb(&mut ctx);
+                layer_shika::calloop::TimeoutAction::ToDuration(interval)
+            })
+            .map_err(|e| HeliumError::Shell(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Register a raw file descriptor as a calloop event source.
+    ///
+    /// The callback fires when the fd becomes readable. Use this to wire in
+    /// compositor sockets or other IPC without touching layer-shika internals.
+    /// The [`IpcContext`] passed to the callback exposes `set` and `get`.
+    ///
+    /// The event loop takes ownership of the fd.
+    pub fn on_ipc(
+        &mut self,
+        fd: impl AsFd + 'static,
+        cb: impl FnMut(&mut IpcContext) + 'static,
+    ) -> std::result::Result<(), HeliumError> {
+        let handle = self.inner.event_loop_handle();
+        let cb = RefCell::new(cb);
+        handle
+            .add_fd(fd, Interest::READ, Mode::Level, move |app_state| {
+                let mut ctx = IpcContext { app_state };
+                let mut cb = cb.borrow_mut();
+                cb(&mut ctx);
+            })
+            .map_err(|e| HeliumError::Shell(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Consume the runtime and return the underlying [`Shell`].
+    ///
+    /// Use this when you need raw access to layer-shika functionality.
+    pub fn into_inner(self) -> Shell {
+        self.inner
     }
 }

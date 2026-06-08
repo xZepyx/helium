@@ -14,7 +14,21 @@ pub mod raw {
 }
 
 pub use anchor::{AnchorEdge, IntoAnchorEdges};
-pub use shell::{Helium, HeliumBuilder, HeliumRuntime, HeliumSurfaceBuilder, MonitorPolicy};
+pub use shell::{
+    Helium, HeliumBuilder, HeliumRuntime, HeliumSurfaceBuilder, IntoSlintValue, IpcContext,
+    MonitorPolicy, TickContext,
+};
+
+/// Convenience prelude that re-exports the most common types.
+///
+/// ```
+/// use helium_wsl::prelude::*;
+/// ```
+pub mod prelude {
+    pub use crate::{
+        AnchorEdge, Helium, HeliumRuntime, IntoSlintValue, IpcContext, MonitorPolicy, TickContext,
+    };
+}
 
 // Re-export the proc macro so users can `use helium::helium_config`.
 pub use helium_wsl_macros::helium_config;
