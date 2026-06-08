@@ -13,6 +13,16 @@ pub mod raw {
     pub use layer_shika::*;
 }
 
+/// Re-export of the `chrono` crate for convenience.
+///
+/// Use this instead of adding `chrono` to your own `Cargo.toml`.
+pub use chrono;
+
+/// Re-export of the `slint-interpreter` crate for convenience.
+///
+/// Use this instead of adding `slint-interpreter` to your own `Cargo.toml`.
+pub use layer_shika::slint_integration::slint_interpreter;
+
 pub use anchor::{AnchorEdge, IntoAnchorEdges};
 pub use shell::{
     Helium, HeliumBuilder, HeliumRuntime, HeliumSurfaceBuilder, IntoSlintValue, IpcContext,
