@@ -23,6 +23,11 @@ pub use chrono;
 /// Use this instead of adding `slint-interpreter` to your own `Cargo.toml`.
 pub use layer_shika::slint_integration::slint_interpreter;
 
+/// Re-export of the `slint` crate for convenience.
+///
+/// Use this instead of adding `slint` to your own `Cargo.toml`.
+pub use layer_shika::slint_integration::slint;
+
 pub use anchor::{AnchorEdge, IntoAnchorEdges};
 pub use shell::{
     Helium, HeliumBuilder, HeliumRuntime, HeliumSurfaceBuilder, IntoSlintValue, IpcContext,
@@ -40,8 +45,8 @@ pub mod prelude {
     };
 }
 
-// Re-export the proc macro so users can `use helium::helium_config`.
-pub use helium_wsl_macros::helium_config;
+// Re-export the proc macros so users can `use helium::helium_*`.
+pub use helium_wsl_macros::{helium_config, helium_model, helium_struct};
 
 /// Unified error type for Helium.
 #[derive(Debug, thiserror::Error)]
