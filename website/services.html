@@ -65,7 +65,7 @@
   <section id="audio">
     <h2>audio</h2>
     <p>System audio volume and mute state via PipeWire or PulseAudio.</p>
-    <pre><code class="language-rust">use helium_wsl::services::audio;
+    <pre><code class="language-rust">use helium::services::audio;
 
 let vol = audio::volume()?;
 audio::set_volume(0.5)?;
@@ -107,7 +107,7 @@ audio::toggle_mute()?;</code></pre>
   <section id="backlight">
     <h2>backlight</h2>
     <p>Read and set display backlight brightness via sysfs.</p>
-    <pre><code class="language-rust">use helium_wsl::services::backlight;
+    <pre><code class="language-rust">use helium::services::backlight;
 
 let b = backlight::brightness()?;
 backlight::set_brightness(0.8)?;</code></pre>
@@ -140,7 +140,7 @@ backlight::set_brightness(0.8)?;</code></pre>
   <section id="bluetooth">
     <h2>bluetooth</h2>
     <p>Bluetooth adapter state and device list via BlueZ D-Bus.</p>
-    <pre><code class="language-rust">use helium_wsl::services::bluetooth;
+    <pre><code class="language-rust">use helium::services::bluetooth;
 
 let enabled = bluetooth::enabled()?;
 let devices = bluetooth::devices()?;</code></pre>
@@ -181,7 +181,7 @@ let devices = bluetooth::devices()?;</code></pre>
   <section id="network">
     <h2>network</h2>
     <p>Network connectivity status via NetworkManager D-Bus.</p>
-    <pre><code class="language-rust">use helium_wsl::services::network;
+    <pre><code class="language-rust">use helium::services::network;
 
 let status = network::status()?;
 println!("connected: {}, ssid: {:?}", status.connected, status.ssid);</code></pre>
@@ -219,7 +219,7 @@ println!("connected: {}, ssid: {:?}", status.connected, status.ssid);</code></pr
   <section id="power">
     <h2>power</h2>
     <p>Battery status via UPower D-Bus.</p>
-    <pre><code class="language-rust">use helium_wsl::services::power;
+    <pre><code class="language-rust">use helium::services::power;
 
 for battery in power::batteries()? {
     println!("{}% {}", battery.percentage, if battery.charging { "charging" } else { "discharging" });
@@ -250,7 +250,7 @@ for battery in power::batteries()? {
   <section id="powerprofiles">
     <h2>powerprofiles</h2>
     <p>Power profile management via power-profiles-daemon D-Bus.</p>
-    <pre><code class="language-rust">use helium_wsl::services::powerprofiles;
+    <pre><code class="language-rust">use helium::services::powerprofiles;
 
 let profile = powerprofiles::active()?;
 powerprofiles::set(powerprofiles::Profile::PowerSaver)?;</code></pre>
@@ -283,7 +283,7 @@ powerprofiles::set(powerprofiles::Profile::PowerSaver)?;</code></pre>
   <section id="time">
     <h2>time</h2>
     <p>Current local time formatting via <code>chrono</code>. Always available (no feature gate).</p>
-    <pre><code class="language-rust">use helium_wsl::services::time;
+    <pre><code class="language-rust">use helium::services::time;
 
 let now = time::now();
 let formatted = time::formatted("%H:%M:%S");</code></pre>

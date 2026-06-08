@@ -1,6 +1,6 @@
 # Services
 
-Helium provides a set of system service wrappers in `helium_wsl::services`. Each
+Helium provides a set of system service wrappers in `helium::services`. Each
 module exposes free functions — no global state, create connections on demand.
 
 All services require the `services` feature (enabled by default).
@@ -10,7 +10,7 @@ All services require the `services` feature (enabled by default).
 Backend: PipeWire (planned), PulseAudio (planned). Currently stubbed.
 
 ```rust
-use helium_wsl::services::audio;
+use helium::services::audio;
 
 let vol = audio::volume()?;
 audio::set_volume(0.5)?;
@@ -26,7 +26,7 @@ audio::on_change(|state| {
 Uses `chrono`, no external backend needed.
 
 ```rust
-use helium_wsl::services::time;
+use helium::services::time;
 
 let now = time::now();
 let formatted = time::formatted("%H:%M:%S");
@@ -37,7 +37,7 @@ let formatted = time::formatted("%H:%M:%S");
 Reads/writes `/sys/class/backlight/<device>/`.
 
 ```rust
-use helium_wsl::services::backlight;
+use helium::services::backlight;
 
 let b = backlight::brightness()?;
 backlight::set_brightness(0.8)?;
@@ -49,7 +49,7 @@ backlight::on_change(|new_val| {
 ## Power (UPower via D-Bus)
 
 ```rust
-use helium_wsl::services::power;
+use helium::services::power;
 
 for battery in power::batteries()? {
     println!("{:?}%", battery.percentage);
@@ -62,7 +62,7 @@ power::on_change(|batteries| {
 ## Power Profiles
 
 ```rust
-use helium_wsl::services::powerprofiles;
+use helium::services::powerprofiles;
 
 let profile = powerprofiles::active()?;
 powerprofiles::set(powerprofiles::Profile::PowerSaver)?;
@@ -71,7 +71,7 @@ powerprofiles::set(powerprofiles::Profile::PowerSaver)?;
 ## Network (NetworkManager via D-Bus)
 
 ```rust
-use helium_wsl::services::network;
+use helium::services::network;
 
 let status = network::status()?;
 println!("connected: {}, ssid: {:?}", status.connected, status.ssid);
@@ -80,7 +80,7 @@ println!("connected: {}, ssid: {:?}", status.connected, status.ssid);
 ## Bluetooth (BlueZ via D-Bus)
 
 ```rust
-use helium_wsl::services::bluetooth;
+use helium::services::bluetooth;
 
 let enabled = bluetooth::enabled()?;
 let devices = bluetooth::devices()?;

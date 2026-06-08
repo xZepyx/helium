@@ -23,7 +23,7 @@ pub enum AnchorEdge {
 Use tuples of 1–4 `AnchorEdge` values with the `.anchor()` method:
 
 ```rust
-use helium_wsl::{AnchorEdge, SurfaceBuilder};
+use helium::{AnchorEdge, SurfaceBuilder};
 
 surface.anchor((AnchorEdge::Top,));
 surface.anchor((AnchorEdge::Top, AnchorEdge::Left));
@@ -42,7 +42,7 @@ under the hood. The sealed pattern keeps the conversion unambiguous.
 Use `Helium::from_file(path)` to start building a shell:
 
 ```rust
-use helium_wsl::{Helium, AnchorEdge, MonitorPolicy};
+use helium::{Helium, AnchorEdge, MonitorPolicy};
 
 Helium::from_file("ui/bar.slint")
     .surface("Main")
@@ -56,10 +56,10 @@ Helium::from_file("ui/bar.slint")
 
 ## Raw access
 
-The full `layer-shika` API is available through `helium_wsl::raw`:
+The full `layer-shika` API is available through `helium::raw`:
 
 ```rust
-use helium_wsl::raw::AnchorEdges;
+use helium::raw::AnchorEdges;
 
 // Direct access when Helium's wrapper isn't enough
 let edges = AnchorEdges::top_bar();

@@ -6,17 +6,17 @@ system service wrappers, and an adapter system for wiring config to Slint UI
 properties.
 
 Helium does **not** replace `layer-shika`. The raw API is always accessible
-at `helium_wsl::raw`.
+at `helium::raw`.
 
 ## Quick start
 
 ```toml
 [dependencies]
-helium-wsl = "0.1"
+helium = "0.1"
 ```
 
 ```rust
-use helium_wsl::{
+use helium::{
     helium_config, AnchorEdge, Helium,
     adapters::{ClockAdapter, WorkspacesAdapter},
 };

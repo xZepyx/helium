@@ -6,7 +6,7 @@ serde deserialization and default values.
 ## The `helium_config!` macro
 
 ```rust
-use helium_wsl::helium_config;
+use helium::helium_config;
 
 helium_config! {
     HeliumConfig {
@@ -58,7 +58,7 @@ let config = HeliumConfig::load("~/.config/helium/bar.json")?;
 ```
 
 Fields not present in the JSON file will use their default values. The loader
-uses `serde_json` and propagates errors via `helium_wsl::ConfigError`.
+uses `serde_json` and propagates errors via `helium::ConfigError`.
 
 ## Using with Helium
 

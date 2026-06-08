@@ -16,7 +16,7 @@ pub mod raw {
 pub use anchor::{AnchorEdge, IntoAnchorEdges};
 pub use shell::{Helium, HeliumBuilder, HeliumRuntime, HeliumSurfaceBuilder, MonitorPolicy};
 
-// Re-export the proc macro so users can `use helium_wsl::helium_config`.
+// Re-export the proc macro so users can `use helium::helium_config`.
 pub use helium_wsl_macros::helium_config;
 
 /// Unified error type for Helium.

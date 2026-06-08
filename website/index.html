@@ -64,7 +64,7 @@
     <h2>Quick Start</h2>
     <p>Add Helium to your <code>Cargo.toml</code>:</p>
     <pre><code class="language-toml">[dependencies]
-helium-wsl = "0.1"</code></pre>
+helium = "0.1"</code></pre>
 
     <p>Define your UI in a <code>.slint</code> file:</p>
     <pre><code class="language-slint">// my-bar.slint
@@ -81,7 +81,7 @@ export component Bar {
 }</code></pre>
 
     <p>Create the surface in Rust:</p>
-    <pre><code class="language-rust">use helium_wsl::{AnchorEdge, Helium};
+    <pre><code class="language-rust">use helium::{AnchorEdge, Helium};
 
 fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     let mut runtime = Helium::from_file("my-bar.slint")

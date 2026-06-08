@@ -49,7 +49,7 @@
       <tr><td>3</td><td>Sway</td><td><code>SWAYSOCK</code></td></tr>
       <tr><td>4</td><td>MangoWM</td><td>(env var not yet documented)</td></tr>
     </table>
-    <pre><code class="language-rust">use helium_wsl::compositors;
+    <pre><code class="language-rust">use helium::compositors;
 
 let mut compositor = compositors::detect()?;
 println!("workspaces: {:?}", compositor.workspaces());
