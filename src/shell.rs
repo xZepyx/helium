@@ -7,6 +7,7 @@ use layer_shika::prelude::*;
 use layer_shika::calloop::{Interest, Mode};
 
 use crate::anchor::IntoAnchorEdges;
+use crate::compositors::Compositor;
 use crate::HeliumError;
 
 /// Monitor selection policy for a surface.
@@ -65,7 +66,7 @@ impl HeliumBuilder {
     /// Build the shell directly (uses a default "Main" surface).
     pub fn build(self) -> std::result::Result<HeliumRuntime, HeliumError> {
         let shell = self.inner.build().map_err(|e| HeliumError::Shell(e.to_string()))?;
-        Ok(HeliumRuntime { inner: shell, ready_cb: None })
+        Ok(HeliumRuntime { inner: shell, ready_cb: None, compositors: Vec::new() })
     }
 }
 
@@ -167,7 +168,7 @@ impl HeliumSurfaceBuilder {
             }
         }
         let shell = self.inner.build().map_err(|e| HeliumError::Shell(e.to_string()))?;
-        Ok(HeliumRuntime { inner: shell, ready_cb: None })
+        Ok(HeliumRuntime { inner: shell, ready_cb: None, compositors: Vec::new() })
     }
 
     /// Build and run the shell event loop (blocks).
@@ -187,6 +188,7 @@ impl HeliumSurfaceBuilder {
 pub struct HeliumRuntime {
     inner: Shell,
     ready_cb: Option<Box<dyn FnOnce(&mut HeliumRuntime) + 'static>>,
+    compositors: Vec<Box<dyn Compositor>>,
 }
 
 /// Trait for values that can be converted into Slint property values.
@@ -394,6 +396,53 @@ impl HeliumRuntime {
                 let mut ctx = IpcContext { app_state };
                 let mut cb = cb.borrow_mut();
                 cb(&mut ctx);
+            })
+            .map_err(|e| HeliumError::Shell(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Attach a compositor handle that is kept alive for the runtime's lifetime.
+    ///
+    /// The compositor is stored and accessible from [`on_ready`](Self::on_ready)
+    /// callbacks via [`compositors`](Self::compositors) /
+    /// [`compositors_mut`](Self::compositors_mut). Use
+    /// [`on_compositor_event`](Self::on_compositor_event) to poll it on a timer.
+    pub fn attach_compositor(&mut self, compositor: Box<dyn Compositor>) -> &mut Self {
+        self.compositors.push(compositor);
+        self
+    }
+
+    /// Access all attached compositors (read-only).
+    pub fn compositors(&self) -> &[Box<dyn Compositor>] {
+        &self.compositors
+    }
+
+    /// Access all attached compositors (mutable).
+    pub fn compositors_mut(&mut self) -> &mut [Box<dyn Compositor>] {
+        &mut self.compositors
+    }
+
+    /// Register a recurring timer that polls a compositor.
+    ///
+    /// The callback receives an [`IpcContext`] for updating UI properties and
+    /// a mutable reference to the compositor for querying state. The compositor
+    /// is kept alive for the duration of the event loop.
+    pub fn on_compositor_event(
+        &mut self,
+        compositor: Box<dyn Compositor>,
+        interval: Duration,
+        cb: impl FnMut(&mut IpcContext, &mut dyn Compositor) + 'static,
+    ) -> std::result::Result<(), HeliumError> {
+        let handle = self.inner.event_loop_handle();
+        let compositor = RefCell::new(compositor);
+        let cb = RefCell::new(cb);
+        handle
+            .add_timer(interval, move |_instant, app_state| {
+                let mut ctx = IpcContext { app_state };
+                let mut compositor = compositor.borrow_mut();
+                let mut cb = cb.borrow_mut();
+                cb(&mut ctx, &mut **compositor);
+                layer_shika::calloop::TimeoutAction::ToDuration(interval)
             })
             .map_err(|e| HeliumError::Shell(e.to_string()))?;
         Ok(())
