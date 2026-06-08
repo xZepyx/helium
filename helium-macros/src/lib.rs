@@ -199,6 +199,13 @@ fn gen_load_method(root: &StructDef) -> proc_macro2::TokenStream {
                 }
             }
 
+            /// Re-read the config from a JSON file, replacing the current values.
+            pub fn reload(&mut self, path: impl AsRef<std::path::Path>) -> Result<(), helium::ConfigError> {
+                let content = std::fs::read_to_string(path.as_ref()).map_err(helium::ConfigError::reading)?;
+                *self = serde_json::from_str(&content).map_err(helium::ConfigError::parsing)?;
+                Ok(())
+            }
+
             /// Save config to a JSON file, creating parent directories if needed.
             pub fn save(&self, path: impl AsRef<std::path::Path>) -> Result<(), helium::ConfigError> {
                 if let Some(parent) = path.as_ref().parent() {
