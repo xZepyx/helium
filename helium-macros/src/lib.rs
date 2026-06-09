@@ -111,7 +111,7 @@ fn gen_structs(def: &StructDef, _parent_name: &Ident) -> proc_macro2::TokenStrea
         .fields
         .iter()
         .filter_map(|f| {
-            if let Field::Nested { ref name, ref fields } = f {
+            if let Field::Nested { name, fields } = f {
                 let nested_name = format_ident!(
                     "{}{}",
                     struct_name,
