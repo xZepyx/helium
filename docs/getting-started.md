@@ -10,7 +10,7 @@ Add Helium to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-helium-wsl = "0.1.5"
+helium-wsl = "0.1.6"
 ```
 
 ### Minimal install (no D-Bus services)
@@ -20,7 +20,7 @@ Bluetooth backends, disable the default features:
 
 ```toml
 [dependencies]
-helium-wsl = { version = "0.1.5", default-features = false }
+helium-wsl = { version = "0.1.6", default-features = false }
 ```
 
 This skips the `zbus` dependency tree entirely — faster compile, fewer

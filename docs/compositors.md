@@ -51,6 +51,7 @@ pub struct Workspace {
     pub id: u32,
     pub name: String,
     pub active: bool,
+    pub occupied: bool,
     pub monitor: String,
 }
 

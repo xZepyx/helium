@@ -113,6 +113,7 @@ impl Compositor for MangoWM {
                         .unwrap_or(&index.to_string())
                         .to_string(),
                     active: focused,
+                    occupied: false,
                     monitor: monitor_name.clone(),
                 });
             }
@@ -163,6 +164,7 @@ impl Compositor for MangoWM {
                             .unwrap_or(&index.to_string())
                             .to_string(),
                         active: true,
+                        occupied: false,
                         monitor: monitor_name.clone(),
                     });
                 }
@@ -240,6 +242,7 @@ impl Compositor for MangoWM {
                                 .unwrap_or(&index.to_string())
                                 .to_string(),
                             active: true,
+                            occupied: false,
                             monitor: monitor_name.clone(),
                         };
                         for cb in cbs.lock().unwrap().iter() {
