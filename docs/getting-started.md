@@ -11,16 +11,43 @@ Add Helium to your `Cargo.toml`:
 helium = "0.1"
 ```
 
-If you only need the core wrapping (no D-Bus services), disable the default `services` feature:
+### Minimal install (no D-Bus services)
+
+If you just want the core shell wrapper and don't need audio, network, or
+Bluetooth backends, disable the default features:
 
 ```toml
 [dependencies]
 helium = { version = "0.1", default-features = false }
 ```
 
+This skips the `zbus` dependency tree entirely — faster compile, fewer
+things to break at 2 AM.
+
+## Feature flags overview
+
+| Flag | What it enables |
+|------|----------------|
+| `compositors` (default) | All compositor backends (Hyprland, Niri, Sway, MangoWM) |
+| `services` (default) | All D-Bus service modules (audio, bluetooth, network, power, power profiles) |
+| `compositor-hyprland` | Hyprland IPC backend |
+| `compositor-niri` | Niri IPC backend |
+| `compositor-sway` | Sway/i3 IPC backend |
+| `compositor-mangowm` | MangoWM (stub) |
+| `service-audio` | Audio backend (PipeWire/PulseAudio via D-Bus) |
+| `service-bluetooth` | Bluetooth (BlueZ via D-Bus) |
+| `service-network` | NetworkManager via D-Bus |
+| `service-power` | UPower via D-Bus |
+| `service-powerprofiles` | power-profiles-daemon via D-Bus |
+
+Time and backlight are always available — they use `chrono` and sysfs
+respectively, no external deps needed.
+
 ## Your first shell
 
-Create a layer-shell surface with a clock and workspace indicators:
+Here is a complete example that creates a bar surface with a clock and
+workspace indicators. It uses `helium_config!` to declare a typed config,
+then builds the shell and attaches adapters.
 
 ```rust
 use helium::{
@@ -70,22 +97,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "workspaces" => WorkspacesAdapter { max: 9 },
     };
 
-    // In a real app, you'd wire adapters to the surface's Slint properties
-    // and start the event loop.
-
     Ok(())
 }
 ```
 
 ## Running
 
-Make sure you have a Wayland compositor running. Helium connects to the
-Wayland display via `layer-shika` and does not need any special permissions.
+Make sure you have a Wayland compositor running — Helium connects through
+`layer-shika` and does not need any special permissions. If you see nothing
+happen, check that `$WAYLAND_DISPLAY` is set (it usually is).
 
 ## What's next
 
-- [API](api.md) — anchors, shell builder, and raw access
-- [Config](config.md) — the `helium_config!` macro and loading
-- [Services](services.md) — audio, backlight, network and more
-- [Compositors](compositors.md) — IPC with your WM
+- [API](api.md) — anchors, shell builder, HeliumRuntime, and raw access
+- [Config](config.md) — the `helium_config!` macro with `load`, `save`, `reload`
+- [Services](services.md) — audio, backlight, network, power, and more
+- [Compositors](compositors.md) — unified IPC with your window manager
 - [Adapters](adapters.md) — wiring config to surface properties
