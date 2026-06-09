@@ -1,6 +1,8 @@
 # Getting Started
 
 Install Helium and build your first Wayland shell surface.
+Also before you check the commit history and say how tf did I add 607 lines of docs in 2-3 mins after the src code released, always remember
+that there is `cargo doc --open` and `flawa` sitting on my pc. And I may or may not have published the doc before I made them.
 
 ## Installation
 
@@ -8,7 +10,7 @@ Add Helium to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-helium = "0.1"
+helium-wsl = "0.1.5"
 ```
 
 ### Minimal install (no D-Bus services)
@@ -18,7 +20,7 @@ Bluetooth backends, disable the default features:
 
 ```toml
 [dependencies]
-helium = { version = "0.1", default-features = false }
+helium-wsl = { version = "0.1.5", default-features = false }
 ```
 
 This skips the `zbus` dependency tree entirely — faster compile, fewer
