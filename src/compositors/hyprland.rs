@@ -56,12 +56,12 @@ impl Hyprland {
     }
 
     fn query_workspaces(&self) -> Option<Vec<HyprlandWorkspace>> {
-        let resp = self.send_command("j/workspaces\n")?;
+        let resp = self.send_command("j/workspaces")?;
         serde_json::from_str(&resp).ok()
     }
 
     fn query_active_workspace(&self) -> Option<HyprlandWorkspace> {
-        let resp = self.send_command("j/activeworkspace\n")?;
+        let resp = self.send_command("j/activeworkspace")?;
         serde_json::from_str(&resp).ok()
     }
 }
