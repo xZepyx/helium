@@ -1,56 +1,22 @@
 # Helium
 
-A modern Wayland shell library wrapping `layer-shika`. Helium gives you a
-cleaner api, a macro-based config system, compositor auto-detection,
-system service wrappers, and an adapter system for wiring config to Slint UI
-properties.
+Helium wraps `layer-shika` and gets out of your way. Clean API, nested config
+macros, compositor auto-detection, and system services — so you can build the
+shell, not the scaffolding.
 
-Helium does **not** replace `layer-shika`. The raw API is always accessible
-at `helium::raw`.
+Helium does **not** replace `layer-shika`. The raw API is always accessible at `helium_wsl::raw`.
 
 ## Quick start
-
+Add this to your Cargo.toml:
 ```toml
 [dependencies]
-helium = "0.1"
+helium-wsl = "0.1.5"
+```
+or: 
+```
+cargo add helium-wsl 
 ```
 
-```rust
-use helium::{
-    helium_config, AnchorEdge, Helium,
-    adapters::{ClockAdapter, WorkspacesAdapter},
-};
-
-helium_config! {
-    Config {
-        bar: {
-            height: u32 = 42,
-            modules: {
-                clock: {
-                    format: String = "%H:%M",
-                },
-                workspaces: {
-                    max: u8 = 9,
-                },
-            },
-        },
-    }
-}
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let config = Config::load("config.json")?;
-
-    let mut runtime = Helium::from_file("bar.slint")
-        .surface("main")
-        .size(1920, 42)
-        .anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right))
-        .exclusive()
-        .build()?;
-
-    runtime.run()?;
-    Ok(())
-}
-```
 
 ## Features
 
@@ -62,14 +28,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Documentation
 
-Full docs are in the [`docs/`](docs/) directory:
-[Getting Started](docs/getting-started.md),
-[API](docs/api.md),
-[Config](docs/config.md),
-[Services](docs/services.md),
-[Compositors](docs/compositors.md),
-[Adapters](docs/adapters.md).
+[xzepyx.github.io/helium](https://xzepyx.github.io/helium)
+
+## Thank You
+* [layer-shika](https://github.com/waydeerwm/layer-shika): This is what helium works on.
 
 ## License
-
 MIT
