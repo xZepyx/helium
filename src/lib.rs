@@ -31,6 +31,7 @@ pub use layer_shika::slint_integration::slint;
 /// Re-export of the `Layer` enum from layer-shika.
 pub use layer_shika::Layer;
 
+pub use config::ConfigError;
 pub use anchor::{AnchorEdge, IntoAnchorEdges};
 pub use compositors::CompositorEvent;
 pub use shell::{
