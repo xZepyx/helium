@@ -19,6 +19,7 @@ chrono = "0.4"
 zbus = { version = "4", optional = true }
 inotify = { version = "0.10", optional = true }
 helium-wsl-macros = { path = "./helium-macros", version = "0.2.0" }
+tokio = { version = "1", features = ["rt"] }
 
 [features]
 default = ["compositors", "services"]

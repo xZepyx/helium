@@ -88,6 +88,24 @@ impl Helium {
         }
     }
 
+    /// Start building from a `.slint` file using a pre-configured compiler.
+    ///
+    /// Uses `tokio::runtime::Runtime::block_on` to resolve the async
+    /// `build_from_path` call synchronously.
+    pub fn from_file_with_compiler(
+        path: impl AsRef<Path>,
+        compiler: layer_shika::slint_integration::slint_interpreter::Compiler,
+    ) -> ShellInitializer {
+        let result = tokio::runtime::Builder::new_current_thread()
+            .build()
+            .expect("failed to create tokio runtime")
+            .block_on(compiler.build_from_path(path.as_ref()));
+        ShellInitializer {
+            inner: Shell::from_compilation(std::rc::Rc::new(result)),
+            surface_names: Vec::new(),
+        }
+    }
+
     /// Build from a Slint source string.
     pub fn from_source(code: impl Into<String>) -> ShellInitializer {
         ShellInitializer {
