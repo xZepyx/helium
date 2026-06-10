@@ -28,10 +28,14 @@ pub use layer_shika::slint_integration::slint_interpreter;
 /// Use this instead of adding `slint` to your own `Cargo.toml`.
 pub use layer_shika::slint_integration::slint;
 
+/// Re-export of the `Layer` enum from layer-shika.
+pub use layer_shika::Layer;
+
 pub use anchor::{AnchorEdge, IntoAnchorEdges};
+pub use compositors::CompositorEvent;
 pub use shell::{
-    Helium, HeliumBuilder, HeliumRuntime, HeliumSurfaceBuilder, IntoSlintValue, IpcContext,
-    MonitorPolicy, TickContext,
+    Helium, IntoSlintValue, IpcContext, Key, KeyboardMode, KeyEvent, Modifiers, MonitorPolicy,
+    PropertyBatch, ShellInitializer, ShellInstance, SurfaceInitializer, TickContext,
 };
 
 /// Convenience prelude that re-exports the most common types.
@@ -41,7 +45,9 @@ pub use shell::{
 /// ```
 pub mod prelude {
     pub use crate::{
-        AnchorEdge, Helium, HeliumRuntime, IntoSlintValue, IpcContext, MonitorPolicy, TickContext,
+        AnchorEdge, CompositorEvent, Helium, IntoSlintValue, IpcContext, Key, KeyboardMode,
+        KeyEvent, Layer, Modifiers, MonitorPolicy, PropertyBatch, ShellInitializer, ShellInstance,
+        SurfaceInitializer, TickContext,
     };
 }
 

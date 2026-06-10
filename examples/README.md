@@ -13,17 +13,17 @@ Each `.slint` file defines a reusable component. Load them in your Rust
 code via `Helium::from_file`:
 
 ```rust
-use helium::{AnchorEdge, Helium};
+use helium_wsl::{AnchorEdge, Helium};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut runtime = Helium::from_file("examples/minimal-bar.slint")
+    let mut shell = Helium::from_file("examples/minimal-bar.slint")
         .surface("main")
         .size(1920, 42)
         .anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right))
         .exclusive()
         .build()?;
 
-    runtime.run()?;
+    shell.run()?;
     Ok(())
 }
 ```

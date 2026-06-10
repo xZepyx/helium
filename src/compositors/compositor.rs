@@ -26,6 +26,17 @@ pub struct Window {
     pub workspace_id: u32,
 }
 
+/// Events emitted by the compositor event socket.
+#[derive(Debug, Clone)]
+pub enum CompositorEvent {
+    WorkspaceChanged(Workspace),
+    WorkspacesUpdated(Vec<Workspace>),
+    WindowFocused(Window),
+    WindowClosed(Window),
+    MonitorAdded(Monitor),
+    MonitorRemoved(String),
+}
+
 /// Unified interface for compositor IPC.
 ///
 /// Each supported compositor implements this trait by connecting to its
@@ -41,4 +52,16 @@ pub trait Compositor: Send {
     fn on_workspace_change(&mut self, cb: Box<dyn Fn(Workspace) + Send>);
     /// Register a callback for window focus changes.
     fn on_window_focus(&mut self, cb: Box<dyn Fn(Window) + Send>);
+    /// Get the currently focused window, if any.
+    fn active_window(&self) -> Option<Window> {
+        None
+    }
+    /// Return the event socket file descriptor for push-based events.
+    fn event_fd(&self) -> Option<std::os::unix::io::RawFd> {
+        None
+    }
+    /// Poll one event from the event socket, if available.
+    fn poll_event(&mut self) -> Option<CompositorEvent> {
+        None
+    }
 }

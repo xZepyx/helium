@@ -9,7 +9,7 @@ mod sway;
 #[cfg(feature = "compositor-mangowm")]
 mod mangowm;
 
-pub use compositor::{Compositor, Monitor, Window, Workspace};
+pub use compositor::{Compositor, CompositorEvent, Monitor, Window, Workspace};
 
 use crate::HeliumError;
 

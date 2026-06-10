@@ -10,11 +10,28 @@ Helium does **not** replace `layer-shika`. The raw API is always accessible at `
 Add this to your Cargo.toml:
 ```toml
 [dependencies]
-helium-wsl = "0.1.5"
+helium-wsl = "0.2.0"
 ```
-or: 
-```
-cargo add helium-wsl 
+or:
+```rust
+use helium_wsl::{Helium, AnchorEdge, ShellInitializer, SurfaceInitializer, ShellInstance, Layer};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut shell: ShellInstance = Helium::from_file("examples/minimal-bar.slint")
+        .surface("main")
+        .size(1920, 42)
+        .anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right))
+        .layer(Layer::Top)
+        .exclusive()
+        .build()?;
+
+    shell.on_tick(std::time::Duration::from_secs(1), |ctx| {
+        ctx.set("main", "label", "hello world");
+    })?;
+
+    shell.run()?;
+    Ok(())
+}
 ```
 
 

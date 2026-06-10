@@ -1,6 +1,6 @@
 [package]
 name = "helium-wsl"
-version = "0.1.7"
+version = "0.2.0"
 edition = "2024"
 description = "A modern Wayland shell library wrapping layer-shika"
 license = "MIT"
@@ -18,7 +18,7 @@ thiserror = "1"
 chrono = "0.4"
 zbus = { version = "4", optional = true }
 inotify = { version = "0.10", optional = true }
-helium-wsl-macros = { path = "./helium-macros", version = "0.1.6" }
+helium-wsl-macros = { path = "./helium-macros", version = "0.2.0" }
 
 [features]
 default = ["compositors", "services"]
