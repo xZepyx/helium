@@ -4,8 +4,6 @@ Adapters are the bridge between your config file and what appears on screen.
 Each adapter reads some config fields and writes to surface properties —
 periodically on a tick, or in response to a shell event.
 
----
-
 ## The Adapter trait
 
 ```rust
@@ -20,12 +18,9 @@ pub trait Adapter: Send {
 |--------|-------------------|
 | `init` | Once, when the adapter is registered |
 | `tick` | Every frame (or tick interval) |
-| `on_event` | When a shell event fires — workspace change, window focus, etc. |
+| `on_event` | When a shell event fires |
 
-All three methods are optional (default no-ops). Only override what you
-actually need.
-
----
+All three methods are optional (default no-ops).
 
 ## AdapterCtx
 
@@ -34,14 +29,9 @@ ctx.set("property_name", "value");
 let val: Option<String> = ctx.get("property_name");
 ```
 
-`set` writes a string value to a named property on the surface. `get`
-reads it back (returns `None` if the property has not been set yet).
-
-In a real integration these map to Slint properties via the component
-instance. The current implementation uses an in-memory hashmap — the
-interface is the same regardless of the backing store.
-
----
+`set` writes a string value to a named property. `get` reads it back.
+The current implementation uses an in-memory hashmap as a stand-in
+until the Slint integration is wired.
 
 ## ShellEvent
 
@@ -53,8 +43,6 @@ pub enum ShellEvent {
     WindowFocus,
 }
 ```
-
----
 
 ## Built-in adapters
 
@@ -69,8 +57,6 @@ let adapter = ClockAdapter {
 };
 ```
 
-Configuration fields:
-
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `format` | `String` | `"%H:%M"` | strftime format string |
@@ -78,27 +64,22 @@ Configuration fields:
 
 ### WorkspacesAdapter
 
-Sets `"workspaces"` (JSON array of workspace numbers) and
-`"active_workspace"` (current workspace index).
+Sets `"workspaces"` (JSON array) and `"active_workspace"` (current index).
 
 ```rust
 let adapter = WorkspacesAdapter { max: 5 };
 ```
 
-Configuration fields:
-
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `max` | `u8` | (required) | Maximum number of workspaces to track |
-
----
+| `max` | `u8` | `9` | Maximum number of workspaces to track |
 
 ## Registration
 
 Use the `adapters!` macro for a concise registration:
 
 ```rust
-use helium::adapters;
+use helium_wsl::adapters;
 
 let mut registry = adapters! {
     "clock" => ClockAdapter { format: "%H:%M".into(), ..Default::default() },
@@ -109,22 +90,20 @@ let mut registry = adapters! {
 Or build an `AdapterRegistry` manually:
 
 ```rust
-use helium::adapters::{AdapterRegistry, ClockAdapter};
+use helium_wsl::adapters::{AdapterRegistry, ClockAdapter};
 
 let mut registry = AdapterRegistry::new(vec![
     ("clock", Box::new(ClockAdapter::default())),
 ]);
 ```
 
-The `AdapterRegistry` can then be wired to a tick source or event source
-in your application loop.
-
----
+The `AdapterRegistry` exposes `init_all`, `tick_all`, `event_all`, and
+`names`.
 
 ## Writing a custom adapter
 
 ```rust
-use helium::adapters::{Adapter, AdapterCtx, ShellEvent};
+use helium_wsl::adapters::{Adapter, AdapterCtx, ShellEvent};
 
 struct WeatherAdapter {
     api_key: String,
@@ -132,14 +111,13 @@ struct WeatherAdapter {
 
 impl Adapter for WeatherAdapter {
     fn tick(&mut self, ctx: &mut AdapterCtx) {
-        // Fetch weather data, set surface properties
         ctx.set("weather_temp", "22°C");
-        ctx.set("weather_icon", "☀️");
+        ctx.set("weather_icon", "clear");
     }
 
     fn on_event(&mut self, event: &ShellEvent, _ctx: &mut AdapterCtx) {
         if matches!(event, ShellEvent::WorkspaceChange) {
-            // Refresh weather when the user switches workspaces
+            // refresh weather
         }
     }
 }

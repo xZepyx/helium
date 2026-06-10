@@ -4,12 +4,10 @@ Helium provides a unified `Compositor` trait and auto-detection for several
 Wayland compositors. You write code against the trait, and Helium figures
 out which IPC socket to poke.
 
----
-
 ## Auto-detection
 
 ```rust
-use helium::compositors;
+use helium_wsl::compositors;
 
 let mut compositor = compositors::detect()?;
 let workspaces = compositor.workspaces();
@@ -26,13 +24,7 @@ Detection checks environment variables in order:
 
 If none of the env vars are present, `detect()` returns an error.
 
-You can also enable individual backends by feature flag instead of the
-full `compositors` group — useful if you only target one DE and want to
-shave a few seconds off your compile.
-
----
-
-## The Compositor trait
+## The `Compositor` trait
 
 ```rust
 pub trait Compositor: Send {
@@ -41,6 +33,9 @@ pub trait Compositor: Send {
     fn monitors(&self) -> Vec<Monitor>;
     fn on_workspace_change(&mut self, cb: Box<dyn Fn(Workspace) + Send>);
     fn on_window_focus(&mut self, cb: Box<dyn Fn(Window) + Send>);
+    fn active_window(&self) -> Option<Window> { None }
+    fn event_fd(&self) -> Option<RawFd> { None }
+    fn poll_event(&mut self) -> Option<CompositorEvent> { None }
 }
 ```
 
@@ -68,9 +63,18 @@ pub struct Window {
     pub class: String,
     pub workspace_id: u32,
 }
+
+pub enum CompositorEvent {
+    WorkspaceChanged(Workspace),
+    WorkspacesUpdated(Vec<Workspace>),
+    WindowFocused(Window),
+    WindowClosed(Window),
+    MonitorAdded(Monitor),
+    MonitorRemoved(String),
+}
 ```
 
-## Compositor types returned
+## Struct-level constructors
 
 | Struct | Constructor |
 |--------|-------------|
@@ -82,64 +86,65 @@ pub struct Window {
 All implement `Compositor` and can be used directly (bypassing `detect`
 if you already know what compositor is running).
 
----
-
-## Attaching to HeliumRuntime
-
-Once you have a compositor, attach it to the runtime to keep it alive for
-the duration of the event loop:
+## Attaching to a shell
 
 ```rust
-let mut runtime = Helium::from_file("bar.slint")
-    .surface("Main")
-    .build()?;
+use helium_wsl::{Helium, compositors};
 
 let compositor = compositors::detect()?;
 
-runtime.attach_compositor(compositor)
-    .on_ready(|rt| {
-        let ws = rt.compositors()[0].workspaces();
-        rt.set("Main", "num_workspaces", ws.len() as i32);
+let mut shell = Helium::from_file("bar.slint")
+    .surface("main")
+    .build()?;
+
+shell.attach_compositor(compositor)
+    .on_ready(|sh| {
+        let ws = sh.compositors()[0].workspaces();
+        sh.set("main", "num_workspaces", ws.len() as i32);
     })
     .run()?;
 ```
 
-### Polling on a timer
+### Push-based event handling
 
-If your compositor does not support async event subscriptions (or you just
-want to poll), use `on_compositor_event`:
+If the compositor supports an event socket (Hyprland does), use
+`on_compositor_event` to receive events via the event fd instead of
+polling:
 
 ```rust
-runtime.on_compositor_event(compositor, Duration::from_millis(200), |ctx, comp| {
-    if let Some(ws) = comp.active_workspace() {
-        ctx.set("Main", "active_ws_id", ws.id as i32);
+let compositor = compositors::detect()?;
+
+shell.on_compositor_event(compositor, |event, ctx| {
+    match event {
+        CompositorEvent::WorkspaceChanged(ws) => {
+            ctx.set("main", "active_ws", ws.id as i32);
+        }
+        _ => {}
     }
 })?;
 ```
 
-The compositor is consumed and kept alive inside the event loop.
-
----
+The compositor is consumed and kept alive inside the event loop. The
+callback receives a `CompositorEvent` and a `TickContext` for updating
+surface properties.
 
 ## Implemented backends
 
 ### Hyprland
 
-Connects via `$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket.sock`.
-Uses Hyprland's JSON IPC.
+Connects via `$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket.sock`
+for commands and `.socket2.sock` for events. Uses Hyprland's JSON IPC.
+Supports `event_fd()` and `poll_event()` for push-based workspace,
+window, and monitor events.
 
 ### Niri
 
-Connects via `$NIRI_SOCKET`. Uses JSON IPC.
+Connects via `$NIRI_SOCKET`. Requires `compositor-niri` feature.
 
 ### Sway
 
-Connects via `$SWAYSOCK`. Uses the i3/Sway binary IPC protocol
-(magic string `"i3-ipc"`, length-prefixed messages with a 32-bit
-payload length and type).
+Connects via `$SWAYSOCK`. Requires `compositor-sway` feature.
 
 ### MangoWM
 
-Currently stubbed. MangoWM does not have public IPC documentation.
-If you know how it works, pull requests are very welcome — the
-protocol is probably simple once someone decodes it.
+Stub — no public IPC documentation available.

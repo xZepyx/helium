@@ -1,8 +1,6 @@
 # Getting Started
 
 Install Helium and build your first Wayland shell surface.
-Also before you check the commit history and say how tf did I add 607 lines of docs in 2-3 mins after the src code released, always remember
-that there is `cargo doc --open` and `flawa` sitting on my pc. And I may or may not have published the doc before I made them.
 
 ## Installation
 
@@ -10,7 +8,7 @@ Add Helium to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-helium-wsl = "0.1.6"
+helium-wsl = "0.2.0"
 ```
 
 ### Minimal install (no D-Bus services)
@@ -20,11 +18,8 @@ Bluetooth backends, disable the default features:
 
 ```toml
 [dependencies]
-helium-wsl = { version = "0.1.6", default-features = false }
+helium-wsl = { version = "0.2.0", default-features = false }
 ```
-
-This skips the `zbus` dependency tree entirely — faster compile, fewer
-things to break at 2 AM.
 
 ## Feature flags overview
 
@@ -36,69 +31,53 @@ things to break at 2 AM.
 | `compositor-niri` | Niri IPC backend |
 | `compositor-sway` | Sway/i3 IPC backend |
 | `compositor-mangowm` | MangoWM (stub) |
-| `service-audio` | Audio backend (PipeWire/PulseAudio via D-Bus) |
-| `service-bluetooth` | Bluetooth (BlueZ via D-Bus) |
-| `service-network` | NetworkManager via D-Bus |
-| `service-power` | UPower via D-Bus |
-| `service-powerprofiles` | power-profiles-daemon via D-Bus |
+| `service-audio` | Audio backend (PipeWire/PulseAudio via D-Bus, stubbed) |
+| `service-bluetooth` | Bluetooth (BlueZ via D-Bus, stubbed) |
+| `service-network` | NetworkManager via D-Bus (stubbed) |
+| `service-power` | UPower via D-Bus (stubbed) |
+| `service-powerprofiles` | power-profiles-daemon via D-Bus (stubbed) |
 
 Time and backlight are always available — they use `chrono` and sysfs
 respectively, no external deps needed.
 
 ## Your first shell
 
-Here is a complete example that creates a bar surface with a clock and
-workspace indicators. It uses `helium_config!` to declare a typed config,
-then builds the shell and attaches adapters.
+Write a `bar.slint` file:
 
-```rust
-use helium::{
-    helium_config,
-    AnchorEdge,
-    Helium,
-    adapters,
-    adapters::{AdapterRegistry, ClockAdapter, WorkspacesAdapter},
-    config::HeliumConfig,
-};
-
-helium_config! {
-    HeliumConfig {
-        bar: {
-            height: u32 = 42,
-            modules: {
-                clock: {
-                    format: String = "%H:%M",
-                    interval_ms: u64 = 1000,
-                },
-                workspaces: {
-                    max: u8 = 9,
-                },
-            },
-        },
+```slint
+export component Bar {
+    in property <string> label;
+    Rectangle {
+        background: #141414;
+        Text {
+            text: label;
+            color: #d4d4d4;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
     }
 }
+```
+
+Then create the surface in Rust:
+
+```rust
+use helium_wsl::{AnchorEdge, Helium, Layer};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Load config from file, or use defaults
-    let config = HeliumConfig::load("config.json").unwrap_or_default();
-
-    // Create the shell
-    let mut helium = Helium::from_config(config)?;
-
-    // Build a bar surface
-    let surface = helium
-        .surface("heliumbar")
+    let mut shell = Helium::from_file("bar.slint")
+        .surface("main")
         .size(1920, 42)
         .anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right))
+        .layer(Layer::Top)
         .exclusive()
         .build()?;
 
-    // Register adapters
-    let mut registry = adapters! {
-        "clock" => ClockAdapter { format: "%H:%M".into(), ..Default::default() },
-        "workspaces" => WorkspacesAdapter { max: 9 },
-    };
+    shell.on_tick(std::time::Duration::from_secs(1), |ctx| {
+        ctx.set("main", "label", "hello world");
+    })?;
 
+    shell.run()?;
     Ok(())
 }
 ```
@@ -111,8 +90,9 @@ happen, check that `$WAYLAND_DISPLAY` is set (it usually is).
 
 ## What's next
 
-- [API](api.md) — anchors, shell builder, HeliumRuntime, and raw access
+- [Anchors](anchors.md) — tuple-based anchor API
 - [Config](config.md) — the `helium_config!` macro with `load`, `save`, `reload`
 - [Services](services.md) — audio, backlight, network, power, and more
 - [Compositors](compositors.md) — unified IPC with your window manager
 - [Adapters](adapters.md) — wiring config to surface properties
+- [Shell API](api.md) — every method on `ShellInstance`, `TickContext`, `IpcContext`

@@ -4,12 +4,10 @@ Config in Helium uses a proc macro (`helium_config!`) that turns a DSL
 into nested serde-deserializable structs with defaults, a `load` method,
 a `save` method, and a `reload` method.
 
----
-
 ## The `helium_config!` macro
 
 ```rust
-use helium::helium_config;
+use helium_wsl::helium_config;
 
 helium_config! {
     HeliumConfig {
@@ -62,13 +60,11 @@ present value produces `Some(value)`.
 helium_config! {
     Config {
         label: String = "default",
-        tooltip: Option<String>,   // None if missing or null
-        volume: Option<f64>,       // None if missing or null
+        tooltip: Option<String>,
+        volume: Option<f64>,
     }
 }
 ```
-
----
 
 ## Loading
 
@@ -81,14 +77,12 @@ let config = HeliumConfig::load("~/.config/helium/bar.json")?;
 Behaviour:
 
 - **File exists and is valid JSON** — deserialises and returns it.
-- **File exists but is garbage** — returns a `helium::ConfigError::Parse`
-  with the serde error message (line number, expected token, etc.).
+- **File exists but is garbage** — returns a `helium_wsl::config::ConfigError::Parse`
+  with the serde error message.
 - **File does not exist** — creates parent directories, writes the default
   config as pretty-printed JSON, and returns the default.
-- **File cannot be read** — returns `helium::ConfigError::Io` wrapping the
-  `std::io::Error`.
-
----
+- **File cannot be read** — returns `helium_wsl::config::ConfigError::Io`
+  wrapping the `std::io::Error`.
 
 ## Reloading
 
@@ -98,10 +92,7 @@ Re-read the config from a file and replace the current values in place:
 config.reload("config.json")?;
 ```
 
-This is a shorthand for reading the file and overwriting `self`. It does
-not modify the file if loading fails.
-
----
+This does not modify the file if loading fails.
 
 ## Saving
 
@@ -111,15 +102,11 @@ Write the current config back to disk:
 config.save("config.json")?;
 ```
 
-Creates parent directories if they don't exist. Returns a
-`helium::ConfigError` on failure.
+Creates parent directories if they don't exist.
 
----
+## Using the config
 
-## Using with Helium
-
-Pass a config to `Helium::from_config` (if that method exists on your
-version), or just access the fields directly:
+Access the fields directly — there is no `Helium::from_config()` method:
 
 ```rust
 let config = HeliumConfig::load("config.json")?;

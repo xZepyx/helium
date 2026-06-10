@@ -20,13 +20,13 @@
   <span class="nav-section">Overview</span>
   <a href="index.html" class="page-link active">Getting Started</a>
   <span class="nav-section">Reference</span>
-  <a href="api.html" class="page-link">API</a>
-  <a href="config.html" class="page-link">Config</a>
-  <a href="services.html" class="page-link">Services</a>
-  <a href="compositors.html" class="page-link">Compositors</a>
-  <a href="adapters.html" class="page-link">Adapters</a>
-  <span class="nav-section">Resources</span>
-  <a href="examples.html" class="page-link">Examples</a>
+  <a href="docs/getting-started.html" class="page-link">Getting Started</a>
+  <a href="docs/anchors.html" class="page-link">Anchors</a>
+  <a href="docs/config.html" class="page-link">Config</a>
+  <a href="docs/services.html" class="page-link">Services</a>
+  <a href="docs/compositors.html" class="page-link">Compositors</a>
+  <a href="docs/adapters.html" class="page-link">Adapters</a>
+  <a href="docs/api.html" class="page-link">API</a>
 </nav>
 
 <main>
@@ -56,7 +56,7 @@
       <tr><td>Compositor detection</td><td>Auto-detect Hyprland, Niri, Sway, or MangoWM from environment variables</td></tr>
       <tr><td>Adapter system</td><td>Plug-in adapters (<code>ClockAdapter</code>, <code>WorkspacesAdapter</code>) that set surface properties on tick/event</td></tr>
       <tr><td>System services</td><td>Free-function wrappers for audio, backlight, Bluetooth, network, power, power profiles, and time</td></tr>
-      <tr><td>D-Bus backends</td><td>Optional <code>services</code> feature enables zbus-based backends for audio, Bluetooth, network, power, and power-profiles-daemon</td></tr>
+      <tr><td>Macros</td><td><code>helium_struct!</code>, <code>helium_model!</code>, <code>adapters!</code>, <code>helium_config!</code></td></tr>
     </table>
   </section>
 
@@ -64,34 +64,39 @@
     <h2>Quick Start</h2>
     <p>Add Helium to your <code>Cargo.toml</code>:</p>
     <pre><code class="language-toml">[dependencies]
-helium = "0.1"</code></pre>
+helium-wsl = "0.2.0"</code></pre>
 
     <p>Define your UI in a <code>.slint</code> file:</p>
     <pre><code class="language-slint">// my-bar.slint
 export component Bar {
     width: 1920px;
     height: 42px;
-    in property &lt;string&gt; title;
+    in property &lt;string&gt; label;
     Rectangle {
         background: #141414;
-        Text { text: title; color: #d4d4d4;
+        Text { text: label; color: #d4d4d4;
                vertical-alignment: center;
                horizontal-alignment: center; }
     }
 }</code></pre>
 
     <p>Create the surface in Rust:</p>
-    <pre><code class="language-rust">use helium::{AnchorEdge, Helium};
+    <pre><code class="language-rust">use helium_wsl::{AnchorEdge, Helium, Layer};
 
 fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
-    let mut runtime = Helium::from_file("my-bar.slint")
+    let mut shell = Helium::from_file("my-bar.slint")
         .surface("main")
         .size(1920, 42)
         .anchor((AnchorEdge::Top, AnchorEdge::Left, AnchorEdge::Right))
+        .layer(Layer::Top)
         .exclusive()
         .build()?;
 
-    runtime.run()?;
+    shell.on_tick(std::time::Duration::from_secs(1), |ctx| {
+        ctx.set("main", "label", "hello world");
+    })?;
+
+    shell.run()?;
     Ok(())
 }</code></pre>
   </section>
