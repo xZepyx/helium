@@ -129,7 +129,7 @@ fn gen_structs(def: &StructDef, _parent_name: &Ident) -> proc_macro2::TokenStrea
         .collect();
 
     quote! {
-        #[derive(Debug, Clone, serde::Deserialize)]
+        #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
         pub struct #struct_name {
             #(#struct_fields),*
         }
