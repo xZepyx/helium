@@ -1,4 +1,5 @@
-use std::io::{BufRead, BufReader, Write};
+use std::cell::RefCell;
+use std::io::{BufRead, BufReader, ErrorKind, Write};
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::os::unix::net::UnixStream;
 use serde::Deserialize;
@@ -7,6 +8,7 @@ use super::compositor::{Compositor, CompositorEvent, Monitor, Window, Workspace}
 pub struct Niri {
     socket_path: String,
     event_reader: Option<BufReader<UnixStream>>,
+    cache: RefCell<Option<Vec<(u64, Workspace)>>>,
 }
 
 impl Niri {
@@ -17,11 +19,13 @@ impl Niri {
             .map_err(|e| crate::HeliumError::Compositor(format!("cannot connect to Niri: {e}")))?;
         let event_stream = UnixStream::connect(&path)
             .map_err(|e| crate::HeliumError::Compositor(format!("cannot open Niri event stream: {e}")))?;
+        event_stream.set_nonblocking(true)
+            .map_err(|e| crate::HeliumError::Compositor(format!("cannot set Niri event stream non-blocking: {e}")))?;
         let mut event_reader = BufReader::new(event_stream);
         event_reader.get_mut().write_all(b"{\"EventStream\":null}\n").ok();
         let mut ack = String::new();
         event_reader.read_line(&mut ack).ok();
-        Ok(Niri { socket_path: path, event_reader: Some(event_reader) })
+        Ok(Niri { socket_path: path, event_reader: Some(event_reader), cache: RefCell::new(None) })
     }
 
     pub fn is_running() -> bool {
@@ -37,41 +41,20 @@ impl Niri {
         reader.read_line(&mut line).ok()?;
         let val: serde_json::Value = serde_json::from_str(line.trim()).ok()?;
 
-        // Niri IPC wraps responses in {"Ok": {"RequestType": <data>}} (new format)
-        // or {"Ok": <data>} (old format). Unwrap both layers.
         let ok_val = val.get("Ok")?;
-        // If the Ok value is itself a single-key object, unwrap one more level
         if let Some(inner) = ok_val.as_object().and_then(|m| m.values().next()) {
             Some(inner.clone())
         } else {
-            // Old format: Ok's value IS the data
             Some(ok_val.clone())
         }
     }
 
-    fn workspaces_impl(&self, with_windows: bool) -> Vec<Workspace> {
-        #[derive(Deserialize)]
-        #[allow(dead_code)]
-        struct NiriWorkspace {
-            id: u64,
-            idx: u64,
-            name: Option<String>,
-            output: Option<String>,
-            is_focused: bool,
-            active_window_id: Option<u64>,
-        }
-        #[derive(Deserialize)]
-        struct NiriWindow {
-            workspace_id: Option<u64>,
-        }
-
+    fn fetch_workspaces(&self, with_windows: bool) -> Vec<Workspace> {
         let ws_data = match self.request("{\"Workspaces\":null}") {
             Some(v) => v,
             None => return vec![],
         };
         let mut raw: Vec<NiriWorkspace> = serde_json::from_value(ws_data).unwrap_or_default();
-
-        // Sort by visual position so the bar shows workspaces in the correct order
         raw.sort_by_key(|w| w.idx);
 
         let windows: Vec<NiriWindow> = if with_windows {
@@ -82,39 +65,67 @@ impl Niri {
             vec![]
         };
 
-        raw.into_iter()
-            .map(|w| {
-                let niri_id = w.id;  // raw Niri workspace ID
-                let pos = w.idx;     // visual position (1-based)
-                let window_count = if with_windows {
-                    windows.iter()
-                        .filter(|win| win.workspace_id == Some(niri_id))
-                        .count() as u32
-                } else {
-                    // use active_window_id as a fast proxy for occupancy
-                    w.active_window_id.is_some() as u32
-                };
-                Workspace {
-                    id: pos as u32,   // use visual position as the workspace ID
-                    name: w.name.unwrap_or_else(|| pos.to_string()),
-                    active: w.is_focused,
-                    occupied: window_count > 0,
-                    window_count,
-                    monitor: w.output.unwrap_or_default(),
-                }
+        let pairs: Vec<(u64, Workspace)> = raw.into_iter().map(|w| {
+            let niri_id = w.id;
+            let pos = w.idx;
+            let window_count = if with_windows {
+                windows.iter()
+                    .filter(|win| win.workspace_id == Some(niri_id))
+                    .count() as u32
+            } else {
+                w.active_window_id.is_some() as u32
+            };
+            (niri_id, Workspace {
+                id: pos as u32,
+                name: w.name.unwrap_or_else(|| pos.to_string()),
+                active: w.is_focused,
+                occupied: window_count > 0,
+                window_count,
+                monitor: w.output.unwrap_or_default(),
             })
-            .collect()
+        }).collect();
+
+        *self.cache.borrow_mut() = Some(pairs.clone());
+        pairs.into_iter().map(|(_, w)| w).collect()
     }
 
     /// Fetch workspaces without querying windows separately (fast path).
     pub fn workspaces_inherent(&self) -> Vec<Workspace> {
-        self.workspaces_impl(false)
+        self.fetch_workspaces(false)
     }
 
     /// Fetch workspaces with full window count (slow path).
     pub fn workspaces_with_windows(&self) -> Vec<Workspace> {
-        self.workspaces_impl(true)
+        self.fetch_workspaces(true)
     }
+
+    fn read_line_nonblocking(reader: &mut BufReader<UnixStream>) -> Option<String> {
+        let mut line = String::new();
+        match reader.read_line(&mut line) {
+            Ok(0) => None,
+            Ok(_) => {
+                let trimmed = line.trim().to_string();
+                if trimmed.is_empty() { None } else { Some(trimmed) }
+            }
+            Err(e) if e.kind() == ErrorKind::WouldBlock => None,
+            Err(_) => None,
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct NiriWorkspace {
+    id: u64,
+    idx: u64,
+    name: Option<String>,
+    output: Option<String>,
+    is_focused: bool,
+    active_window_id: Option<u64>,
+}
+
+#[derive(Deserialize)]
+struct NiriWindow {
+    workspace_id: Option<u64>,
 }
 
 impl Compositor for Niri {
@@ -164,13 +175,13 @@ impl Compositor for Niri {
 
     fn active_window(&self) -> Option<Window> {
         #[derive(Deserialize)]
-        struct NiriWindow {
+        struct FocusedWindow {
             title: Option<String>,
             app_id: Option<String>,
             workspace_id: Option<u64>,
         }
         let data = self.request("{\"FocusedWindow\":null}")?;
-        let w: NiriWindow = serde_json::from_value(data).ok()?;
+        let w: FocusedWindow = serde_json::from_value(data).ok()?;
         Some(Window {
             title: w.title.unwrap_or_default(),
             class: w.app_id.unwrap_or_default(),
@@ -184,25 +195,57 @@ impl Compositor for Niri {
 
     fn poll_event(&mut self) -> Option<CompositorEvent> {
         let reader = self.event_reader.as_mut()?;
-        let mut line = String::new();
-        reader.read_line(&mut line).ok()?;
-        if line.trim().is_empty() {
-            return None;
-        }
-        let val: serde_json::Value = serde_json::from_str(line.trim()).ok()?;
+        let line = Self::read_line_nonblocking(reader)?;
+        let val: serde_json::Value = serde_json::from_str(&line).ok()?;
         let obj = val.as_object()?;
         let event_type = obj.keys().next()?.as_str();
 
         match event_type {
-            "WorkspacesChanged" | "WorkspaceActivated" => {
-                // Fast path: skip windows query, use active_window_id for occupancy
-                Some(CompositorEvent::WorkspacesUpdated(self.workspaces()))
+            "WorkspacesChanged" => {
+                // Event contains full workspace list — parse directly, no IPC
+                let payload = &obj[event_type];
+                let workspaces_val = payload.get("workspaces")?.clone();
+                let mut raw: Vec<NiriWorkspace> = serde_json::from_value(workspaces_val).ok()?;
+                raw.sort_by_key(|w| w.idx);
+                let pairs: Vec<(u64, Workspace)> = raw.into_iter().map(|w| {
+                    let pos = w.idx;
+                    (w.id, Workspace {
+                        id: pos as u32,
+                        name: w.name.unwrap_or_else(|| pos.to_string()),
+                        active: w.is_focused,
+                        occupied: w.active_window_id.is_some(),
+                        window_count: w.active_window_id.is_some() as u32,
+                        monitor: w.output.unwrap_or_default(),
+                    })
+                }).collect();
+                *self.cache.borrow_mut() = Some(pairs.clone());
+                Some(CompositorEvent::WorkspacesUpdated(pairs.into_iter().map(|(_, w)| w).collect()))
+            }
+            "WorkspaceActivated" => {
+                // Event has {id, focused} — update cache in-place, no IPC
+                let payload = &obj[event_type];
+                let niri_id = payload.get("id").and_then(|v| v.as_u64())?;
+                let focused = payload.get("focused").and_then(|v| v.as_bool()).unwrap_or(false);
+                let mut cache = self.cache.borrow_mut();
+                if let Some(ref mut list) = *cache {
+                    for (_, ws) in list.iter_mut() {
+                        ws.active = false;
+                    }
+                    if let Some((_, ws)) = list.iter_mut().find(|(id, _)| *id == niri_id) {
+                        ws.active = focused;
+                    }
+                    Some(CompositorEvent::WorkspacesUpdated(
+                        list.iter().map(|(_, w)| w.clone()).collect()
+                    ))
+                } else {
+                    drop(cache);
+                    Some(CompositorEvent::WorkspacesUpdated(self.workspaces()))
+                }
             }
             "WindowFocusChanged" => {
                 self.active_window().map(CompositorEvent::WindowFocused)
             }
             "WindowOpenedOrChanged" => {
-                // Window counts changed, do full query
                 Some(CompositorEvent::WorkspacesUpdated(self.workspaces_with_windows()))
             }
             "WindowClosed" => {
