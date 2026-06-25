@@ -1,6 +1,6 @@
 [package]
 name = "helium-wsl"
-version = "0.2.1"
+version = "0.2.3"
 edition = "2024"
 description = "A modern Wayland shell library wrapping layer-shika"
 license = "MIT"
@@ -18,18 +18,16 @@ thiserror = "1"
 chrono = "0.4"
 zbus = { version = "4", optional = true }
 inotify = { version = "0.10", optional = true }
-helium-wsl-macros = { path = "./helium-macros", version = "0.2.1" }
+helium-wsl-macros = { path = "./helium-macros", version = "0.2.3" }
 tokio = { version = "1", features = ["rt"] }
 
 [features]
 default = ["compositors", "services"]
 
 # Compositor backends — gate individual IPC implementations
-compositors = ["compositor-hyprland", "compositor-niri", "compositor-sway", "compositor-mangowm"]
+compositors = ["compositor-hyprland", "compositor-niri"]
 compositor-hyprland = []
 compositor-niri = []
-compositor-sway = []
-compositor-mangowm = []
 
 # Service modules — time and backlight are always available (no external deps);
 # the rest require zbus for their D-Bus backends.

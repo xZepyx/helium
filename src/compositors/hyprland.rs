@@ -113,6 +113,7 @@ impl Compositor for Hyprland {
                         name: w.name,
                         active: active.as_ref().is_some_and(|a| a.id == w.id),
                         occupied: w.windows > 0,
+                        window_count: w.windows as u32,
                         monitor: w.monitor,
                     })
                     .collect()
@@ -126,6 +127,7 @@ impl Compositor for Hyprland {
             name: w.name,
             active: true,
             occupied: w.windows > 0,
+            window_count: w.windows as u32,
             monitor: w.monitor,
         })
     }
@@ -172,12 +174,13 @@ impl Compositor for Hyprland {
         let line = line.trim_end();
         let (event_type, data) = line.split_once(">>")?;
         match event_type {
-            "workspace" => {
-                let mut ws = self.active_workspace();
-                if let Some(ref mut w) = ws {
-                    w.name = data.to_string();
-                }
-                ws.map(CompositorEvent::WorkspaceChanged)
+            "workspace" | "workspacev2" => {
+                let workspaces = self.workspaces();
+                let active = workspaces.iter().find(|w| w.active).cloned();
+                active.map(|ws| CompositorEvent::WorkspaceChanged {
+                    focused_window: self.active_window(),
+                    workspace: ws,
+                })
             }
             "activewindow" => {
                 let parts: Vec<&str> = data.splitn(2, ',').collect();

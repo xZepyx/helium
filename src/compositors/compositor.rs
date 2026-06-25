@@ -4,7 +4,8 @@ pub struct Workspace {
     pub id: u32,
     pub name: String,
     pub active: bool,
-    pub occupied: bool,
+    pub occupied: bool,       // true if any window exists on this workspace
+    pub window_count: u32,    // exact number of windows
     pub monitor: String,
 }
 
@@ -27,9 +28,18 @@ pub struct Window {
 }
 
 /// Events emitted by the compositor event socket.
+///
+/// NOTE: In 0.2.3 `WorkspaceChanged` changed from a tuple variant
+/// `WorkspaceChanged(Workspace)` to a struct variant
+/// `WorkspaceChanged { workspace, focused_window }`.
+/// If nucleus-shell or other consumers match on the old shape they
+/// must be updated.
 #[derive(Debug, Clone)]
 pub enum CompositorEvent {
-    WorkspaceChanged(Workspace),
+    WorkspaceChanged {
+        workspace: Workspace,
+        focused_window: Option<Window>,  // None if workspace is empty/no focus
+    },
     WorkspacesUpdated(Vec<Workspace>),
     WindowFocused(Window),
     WindowClosed(Window),
