@@ -36,16 +36,25 @@ impl Niri {
         let mut line = String::new();
         reader.read_line(&mut line).ok()?;
         let val: serde_json::Value = serde_json::from_str(line.trim()).ok()?;
-        val.get("Ok").cloned()
-    }
-}
 
-impl Compositor for Niri {
-    fn workspaces(&self) -> Vec<Workspace> {
+        // Niri IPC wraps responses in {"Ok": {"RequestType": <data>}} (new format)
+        // or {"Ok": <data>} (old format). Unwrap both layers.
+        let ok_val = val.get("Ok")?;
+        // If the Ok value is itself a single-key object, unwrap one more level
+        if let Some(inner) = ok_val.as_object().and_then(|m| m.values().next()) {
+            Some(inner.clone())
+        } else {
+            // Old format: Ok's value IS the data
+            Some(ok_val.clone())
+        }
+    }
+
+    fn workspaces_impl(&self, with_windows: bool) -> Vec<Workspace> {
         #[derive(Deserialize)]
         #[allow(dead_code)]
         struct NiriWorkspace {
             id: u64,
+            idx: u64,
             name: Option<String>,
             output: Option<String>,
             is_focused: bool,
@@ -60,23 +69,34 @@ impl Compositor for Niri {
             Some(v) => v,
             None => return vec![],
         };
-        let raw: Vec<NiriWorkspace> = serde_json::from_value(ws_data).unwrap_or_default();
+        let mut raw: Vec<NiriWorkspace> = serde_json::from_value(ws_data).unwrap_or_default();
 
-        // get all windows to count per workspace
-        let windows: Vec<NiriWindow> = self
-            .request("{\"Windows\":null}")
-            .and_then(|v| serde_json::from_value(v).ok())
-            .unwrap_or_default();
+        // Sort by visual position so the bar shows workspaces in the correct order
+        raw.sort_by_key(|w| w.idx);
+
+        let windows: Vec<NiriWindow> = if with_windows {
+            self.request("{\"Windows\":null}")
+                .and_then(|v| serde_json::from_value(v).ok())
+                .unwrap_or_default()
+        } else {
+            vec![]
+        };
 
         raw.into_iter()
             .map(|w| {
-                let window_count = windows
-                    .iter()
-                    .filter(|win| win.workspace_id == Some(w.id))
-                    .count() as u32;
+                let niri_id = w.id;  // raw Niri workspace ID
+                let pos = w.idx;     // visual position (1-based)
+                let window_count = if with_windows {
+                    windows.iter()
+                        .filter(|win| win.workspace_id == Some(niri_id))
+                        .count() as u32
+                } else {
+                    // use active_window_id as a fast proxy for occupancy
+                    w.active_window_id.is_some() as u32
+                };
                 Workspace {
-                    id: w.id as u32,
-                    name: w.name.unwrap_or_else(|| w.id.to_string()),
+                    id: pos as u32,   // use visual position as the workspace ID
+                    name: w.name.unwrap_or_else(|| pos.to_string()),
                     active: w.is_focused,
                     occupied: window_count > 0,
                     window_count,
@@ -84,6 +104,22 @@ impl Compositor for Niri {
                 }
             })
             .collect()
+    }
+
+    /// Fetch workspaces without querying windows separately (fast path).
+    pub fn workspaces_inherent(&self) -> Vec<Workspace> {
+        self.workspaces_impl(false)
+    }
+
+    /// Fetch workspaces with full window count (slow path).
+    pub fn workspaces_with_windows(&self) -> Vec<Workspace> {
+        self.workspaces_impl(true)
+    }
+}
+
+impl Compositor for Niri {
+    fn workspaces(&self) -> Vec<Workspace> {
+        self.workspaces_inherent()
     }
 
     fn active_workspace(&self) -> Option<Workspace> {
@@ -138,7 +174,7 @@ impl Compositor for Niri {
         Some(Window {
             title: w.title.unwrap_or_default(),
             class: w.app_id.unwrap_or_default(),
-            workspace_id: w.workspace_id.unwrap_or(0) as u32,
+            workspace_id: (w.workspace_id.unwrap_or(0) as u32).saturating_add(1),
         })
     }
 
@@ -159,21 +195,15 @@ impl Compositor for Niri {
 
         match event_type {
             "WorkspacesChanged" | "WorkspaceActivated" => {
-                let workspaces = self.workspaces();
-                let active = workspaces.iter().find(|w| w.active).cloned();
-                match active {
-                    Some(ws) => Some(CompositorEvent::WorkspaceChanged {
-                        focused_window: self.active_window(),
-                        workspace: ws,
-                    }),
-                    None => Some(CompositorEvent::WorkspacesUpdated(workspaces)),
-                }
+                // Fast path: skip windows query, use active_window_id for occupancy
+                Some(CompositorEvent::WorkspacesUpdated(self.workspaces()))
             }
             "WindowFocusChanged" => {
                 self.active_window().map(CompositorEvent::WindowFocused)
             }
             "WindowOpenedOrChanged" => {
-                Some(CompositorEvent::WorkspacesUpdated(self.workspaces()))
+                // Window counts changed, do full query
+                Some(CompositorEvent::WorkspacesUpdated(self.workspaces_with_windows()))
             }
             "WindowClosed" => {
                 let id = obj["WindowClosed"]
