@@ -53,7 +53,7 @@
       <tr><th>Feature</th><th>Description</th></tr>
       <tr><td>Fluent builder API</td><td><code>Helium::from_file("ui.slint").surface("bar").size(1920, 42).exclusive().build()</code></td></tr>
       <tr><td><code>helium_config!</code></td><td>Declare typed config structs with defaults in a DSL — generates serde parsing, <code>Default</code>, and a <code>load(path)</code> method</td></tr>
-      <tr><td>Compositor detection</td><td>Auto-detect Hyprland, Niri, Sway, or MangoWM from environment variables</td></tr>
+      <tr><td>Compositor detection</td><td>Auto-detect Hyprland or Niri from environment variables</td></tr>
       <tr><td>Adapter system</td><td>Plug-in adapters (<code>ClockAdapter</code>, <code>WorkspacesAdapter</code>) that set surface properties on tick/event</td></tr>
       <tr><td>System services</td><td>Free-function wrappers for audio, backlight, Bluetooth, network, power, power profiles, and time</td></tr>
       <tr><td>Macros</td><td><code>helium_struct!</code>, <code>helium_model!</code>, <code>adapters!</code>, <code>helium_config!</code></td></tr>
@@ -64,7 +64,7 @@
     <h2>Quick Start</h2>
     <p>Add Helium to your <code>Cargo.toml</code>:</p>
     <pre><code class="language-toml">[dependencies]
-helium-wsl = "0.2.0"</code></pre>
+helium-wsl = "0.2.3"</code></pre>
 
     <p>Define your UI in a <code>.slint</code> file:</p>
     <pre><code class="language-slint">// my-bar.slint

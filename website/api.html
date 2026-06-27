@@ -40,7 +40,7 @@
   <section id="anchoredge">
     <h2>AnchorEdge</h2>
     <div class="type-header"><span class="keyword">enum</span> <span class="type-name">AnchorEdge</span></div>
-    <p>One edge of the screen. Passed as tuples to <code>HeliumSurfaceBuilder::anchor()</code>.</p>
+    <p>One edge of the screen. Passed as tuples to <code>SurfaceInitializer::anchor()</code>.</p>
 
     <h3>Variants</h3>
     <table>
@@ -74,49 +74,49 @@
   <section id="helium">
     <h2>Helium</h2>
     <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Helium</span></div>
-    <p>Entry point for building a shell. Call one of the constructor methods to get a <code>HeliumBuilder</code>.</p>
+    <p>Entry point for building a shell. Call one of the constructor methods to get a <code>ShellInitializer</code>.</p>
 
     <h3>Methods</h3>
 
     <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_file</span>(path: <span class="type">impl AsRef&lt;Path&gt;</span>) -> <span class="type">HeliumBuilder</span></div>
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_file</span>(path: <span class="type">impl AsRef&lt;Path&gt;</span>) -> <span class="type">ShellInitializer</span></div>
       <div class="desc">Start building a Helium shell from a <code>.slint</code> file. The file is compiled with the Slint interpreter at runtime.</div>
     </div>
 
     <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_compilation</span>(compilation: <span class="type">Rc&lt;CompilationResult&gt;</span>) -> <span class="type">HeliumBuilder</span></div>
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_compilation</span>(compilation: <span class="type">Rc&lt;CompilationResult&gt;</span>) -> <span class="type">ShellInitializer</span></div>
       <div class="desc">Start building from a pre-compiled Slint source. Useful when you need to load or manipulate the compilation manually.</div>
     </div>
 
     <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_source</span>(code: <span class="type">impl Into&lt;String&gt;</span>) -> <span class="type">HeliumBuilder</span></div>
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_source</span>(code: <span class="type">impl Into&lt;String&gt;</span>) -> <span class="type">ShellInitializer</span></div>
       <div class="desc">Build from a Slint source string. Compiles the string at runtime.</div>
     </div>
   </section>
 
-  <!-- ─── HeliumBuilder ─── -->
+  <!-- ─── ShellInitializer ─── -->
   <section id="heliumbuilder">
-    <h2>HeliumBuilder</h2>
-    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">HeliumBuilder</span></div>
+    <h2>ShellInitializer</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">ShellInitializer</span></div>
     <p>Wraps a <code>ShellBuilder</code> before any surfaces are configured. Chain calls to <code>.surface()</code> to define each surface, then finish with <code>.build()</code>.</p>
 
     <h3>Methods</h3>
 
     <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">surface</span>(self, name: <span class="type">&amp;str</span>) -> <span class="type">HeliumSurfaceBuilder</span></div>
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">surface</span>(self, name: <span class="type">&amp;str</span>) -> <span class="type">SurfaceInitializer</span></div>
       <div class="desc">Start configuring a new surface with the given name. The name must match a component exported in the Slint file.</div>
     </div>
 
     <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">build</span>(self) -> <span class="type">Result&lt;HeliumRuntime, HeliumError&gt;</span></div>
-      <div class="desc">Build the shell directly using a default <code>"Main"</code> surface. Only call this if you haven't called <code>.surface()</code> — otherwise, finish with <code>HeliumSurfaceBuilder::build()</code>.</div>
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">build</span>(self) -> <span class="type">Result&lt;ShellInstance, HeliumError&gt;</span></div>
+      <div class="desc">Build the shell directly using a default <code>"Main"</code> surface. Only call this if you haven't called <code>.surface()</code> — otherwise, finish with <code>SurfaceInitializer::build()</code>.</div>
     </div>
   </section>
 
-  <!-- ─── HeliumSurfaceBuilder ─── -->
+  <!-- ─── SurfaceInitializer ─── -->
   <section id="heliumsurfacebuilder">
-    <h2>HeliumSurfaceBuilder</h2>
-    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">HeliumSurfaceBuilder</span></div>
+    <h2>SurfaceInitializer</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">SurfaceInitializer</span></div>
     <p>Fluent builder for configuring individual surfaces. Chain dimension and anchor methods, then call <code>.surface()</code> for the next surface or <code>.build()</code> / <code>.run()</code> to finish.</p>
 
     <h3>Methods</h3>
@@ -167,7 +167,7 @@
     </div>
 
     <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">build</span>(self) -> <span class="type">Result&lt;HeliumRuntime, HeliumError&gt;</span></div>
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">build</span>(self) -> <span class="type">Result&lt;ShellInstance, HeliumError&gt;</span></div>
       <div class="desc">Build the shell and return a runtime handle. Call <code>.run()</code> on the runtime to start the event loop.</div>
     </div>
 
@@ -177,17 +177,162 @@
     </div>
   </section>
 
-  <!-- ─── HeliumRuntime ─── -->
-  <section id="heliumruntime">
-    <h2>HeliumRuntime</h2>
-    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">HeliumRuntime</span></div>
-    <p>A running Helium shell instance. Returned by <code>HeliumSurfaceBuilder::build()</code>.</p>
+  <!-- ─── ShellInstance ─── -->
+  <section id="shellinstance">
+    <h2>ShellInstance</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">ShellInstance</span></div>
+    <p>A running Helium shell instance. Returned by <code>SurfaceInitializer::build()</code>.</p>
 
     <h3>Methods</h3>
 
     <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, prop: <span class="type">&amp;str</span>, value: <span class="type">impl IntoSlintValue</span>)</div>
+      <div class="desc">Set a Slint property on a named surface.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">get</span>(&amp;self, surface: <span class="type">&amp;str</span>, prop: <span class="type">&amp;str</span>) -> <span class="type">Option&lt;slint_interpreter::Value&gt;</span></div>
+      <div class="desc">Read a Slint property from a named surface.</div>
+    </div>
+
+    <div class="method">
       <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">run</span>(&amp;mut self) -> <span class="type">Result&lt;(), HeliumError&gt;</span></div>
       <div class="desc">Run the event loop (blocks). Call this after building to start processing Wayland events and rendering the surface.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_ready</span>(&amp;mut self, cb: <span class="type">impl FnOnce(&amp;mut ShellInstance) + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="desc">Register a one-shot callback that fires just before the event loop starts.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_tick</span>(&amp;mut self, interval: <span class="type">Duration</span>, cb: <span class="type">impl FnMut(&amp;mut TickContext) + 'static</span>) -> <span class="type">Result&lt;(), HeliumError&gt;</span></div>
+      <div class="desc">Register a repeating timer. The callback receives a <code>TickContext</code>.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_ipc</span>(&amp;mut self, fd: <span class="type">RawFd</span>, cb: <span class="type">impl FnMut(&amp;mut IpcContext) + 'static</span>) -> <span class="type">Result&lt;(), HeliumError&gt;</span></div>
+      <div class="desc">Watch a raw file descriptor for readability. The callback receives an <code>IpcContext</code>.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">attach_compositor</span>(&amp;mut self, compositor: <span class="type">Box&lt;dyn Compositor&gt;</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="desc">Attach a compositor handle that stays alive for the shell's lifetime.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">compositors</span>(&amp;self) -> <span class="type">&amp;[Box&lt;dyn Compositor&gt;]</span></div>
+      <div class="desc">Get a reference to all attached compositors.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">compositors_mut</span>(&amp;mut self) -> <span class="type">&amp;mut [Box&lt;dyn Compositor&gt;]</span></div>
+      <div class="desc">Get a mutable reference to all attached compositors.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_compositor_event</span>(&amp;mut self, compositor: <span class="type">Box&lt;dyn Compositor&gt;</span>, cb: <span class="type">impl FnMut(CompositorEvent, &amp;mut TickContext) + 'static</span>) -> <span class="type">Result&lt;(), HeliumError&gt;</span></div>
+      <div class="desc">Connect to the compositor's event socket and fire the callback on events.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">attach_adapters</span>(&amp;mut self, registry: <span class="type">AdapterRegistry</span>, tick_interval: <span class="type">Duration</span>, surface: <span class="type">&amp;str</span>) -> <span class="type">Result&lt;(), HeliumError&gt;</span></div>
+      <div class="desc">Register a repeating timer that ticks all adapters and applies their property changes to the named surface.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">surface_names</span>(&amp;self) -> <span class="type">Vec&lt;String&gt;</span></div>
+      <div class="desc">List all registered surface names.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">with_all_surfaces</span>(&amp;self, cb: <span class="type">impl Fn(&amp;str)</span>)</div>
+      <div class="desc">Iterate over all registered surface names.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">update</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, cb: <span class="type">impl FnOnce(&amp;mut PropertyBatch)</span>)</div>
+      <div class="desc">Bulk update properties on a surface through a <code>PropertyBatch</code>.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_property_change</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, prop: <span class="type">&amp;str</span>, cb: <span class="type">impl Fn(slint_interpreter::Value) + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="desc">Register a callback fired when a Slint property changes. Currently stored but not wired (waiting on slint-interpreter API).</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_signal</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, signal: <span class="type">&amp;str</span>, cb: <span class="type">impl Fn() + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="desc">Register a callback for a Slint signal. Wired via <code>set_callback()</code>.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_surface_ready</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, cb: <span class="type">impl FnOnce(&amp;mut ShellInstance) + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="desc">Register a per-surface ready callback, fired when the surface is mapped.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_surface_created</span>(&amp;mut self, cb: <span class="type">impl Fn(&amp;str) + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="desc">Register a callback fired when a surface is created.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_surface_destroyed</span>(&amp;mut self, cb: <span class="type">impl Fn(&amp;str) + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="desc">Register a callback fired when a surface is destroyed.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_event</span>(&amp;mut self, name: <span class="type">&amp;str</span>, cb: <span class="type">impl Fn(Option&lt;&amp;str&gt;) + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="desc">Register a listener for a custom event bus event.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">emit</span>(&amp;mut self, name: <span class="type">&amp;str</span>, payload: <span class="type">&amp;str</span>)</div>
+      <div class="desc">Emit a custom event on the event bus.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_key</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, key: <span class="type">Key</span>, cb: <span class="type">impl Fn(KeyEvent) + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="desc">Register a keyboard input callback. Currently stored but not wired (waiting on layer-shika keyboard API).</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">hide</span>(&amp;mut self, surface: <span class="type">&amp;str</span>)</div>
+      <div class="desc">Hide a surface. Currently stubbed (waiting on layer-shika visibility API).</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">show</span>(&amp;mut self, surface: <span class="type">&amp;str</span>)</div>
+      <div class="desc">Show a previously hidden surface. Currently stubbed (waiting on layer-shika visibility API).</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">reload_ui</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, path: <span class="type">impl AsRef&lt;Path&gt;</span>)</div>
+      <div class="desc">Reload a surface from a new Slint file. Currently stubbed (waiting on layer-shika component replacement API).</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">pause</span>(&amp;mut self)</div>
+      <div class="desc">Suspend rendering and update callbacks.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">resume</span>(&amp;mut self)</div>
+      <div class="desc">Resume rendering and update callbacks.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set_on</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, monitor: <span class="type">&amp;str</span>, prop: <span class="type">&amp;str</span>, value: <span class="type">impl IntoSlintValue</span>)</div>
+      <div class="desc">Set a property on a surface on a specific monitor. Currently falls back to <code>set</code> (per-monitor targeting pending).</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">surface_monitor</span>(&amp;self, surface: <span class="type">&amp;str</span>) -> <span class="type">Option&lt;String&gt;</span></div>
+      <div class="desc">Get the monitor name a surface is displayed on, if known.</div>
+    </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">into_inner</span>(self) -> <span class="type">layer_shika::Shell</span></div>
+      <div class="desc">Consume the runtime and return the underlying <code>layer_shika::Shell</code>.</div>
     </div>
   </section>
 
@@ -227,10 +372,10 @@
   <section id="raw">
     <h2>raw module</h2>
     <p>
-      The <code>helium::raw</code> module re-exports the full <code>layer_shika</code> crate.
+      The <code>helium_wsl::raw</code> module re-exports the full <code>layer_shika</code> crate.
       Use this escape hatch when you need access to raw Wayland types that Helium doesn't wrap.
     </p>
-    <pre><code class="language-rust">use helium::raw::layer_shika::*;</code></pre>
+    <pre><code class="language-rust">use helium_wsl::raw::layer_shika::*;</code></pre>
   </section>
 </div>
 </main>

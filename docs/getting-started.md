@@ -8,7 +8,7 @@ Add Helium to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-helium-wsl = "0.2.0"
+helium-wsl = "0.2.3"
 ```
 
 ### Minimal install (no D-Bus services)
@@ -18,19 +18,17 @@ Bluetooth backends, disable the default features:
 
 ```toml
 [dependencies]
-helium-wsl = { version = "0.2.0", default-features = false }
+helium-wsl = { version = "0.2.3", default-features = false }
 ```
 
 ## Feature flags overview
 
 | Flag | What it enables |
 |------|----------------|
-| `compositors` (default) | All compositor backends (Hyprland, Niri, Sway, MangoWM) |
+| `compositors` (default) | All compositor backends (Hyprland, Niri) |
 | `services` (default) | All D-Bus service modules (audio, bluetooth, network, power, power profiles) |
 | `compositor-hyprland` | Hyprland IPC backend |
 | `compositor-niri` | Niri IPC backend |
-| `compositor-sway` | Sway/i3 IPC backend |
-| `compositor-mangowm` | MangoWM (stub) |
 | `service-audio` | Audio backend (PipeWire/PulseAudio via D-Bus, stubbed) |
 | `service-bluetooth` | Bluetooth (BlueZ via D-Bus, stubbed) |
 | `service-network` | NetworkManager via D-Bus (stubbed) |

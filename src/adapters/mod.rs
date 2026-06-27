@@ -25,7 +25,7 @@ pub struct AdapterCtx {
 }
 
 impl AdapterCtx {
-    pub(crate) fn _new() -> Self {
+    pub fn _new() -> Self {
         AdapterCtx {
             properties: Arc::new(Mutex::new(HashMap::new())),
         }
@@ -41,6 +41,18 @@ impl AdapterCtx {
     /// Get a surface property value.
     pub fn get(&self, prop: &str) -> Option<String> {
         self.properties.lock().ok().and_then(|map| map.get(prop).cloned())
+    }
+
+    /// Drain all accumulated property changes.
+    ///
+    /// Call this after `tick_all` / `event_all` to collect the properties
+    /// that adapters set and apply them to actual surface components.
+    pub fn take_changes(&self) -> Vec<(String, String)> {
+        self.properties
+            .lock()
+            .ok()
+            .map(|mut map| map.drain().collect())
+            .unwrap_or_default()
     }
 }
 

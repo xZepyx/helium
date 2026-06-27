@@ -74,7 +74,7 @@ export component MinimalBar {
         }
     }
 }</code></pre>
-    <pre><code class="language-rust">use helium::{AnchorEdge, Helium};
+    <pre><code class="language-rust">use helium_wsl::{AnchorEdge, Helium};
 
 fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     let mut runtime = Helium::from_file("examples/minimal-bar.slint")
@@ -113,7 +113,7 @@ export component ClockBar {
         }
     }
 }</code></pre>
-    <pre><code class="language-rust">use helium::{
+    <pre><code class="language-rust">use helium_wsl::{
     AnchorEdge, Helium,
     adapters::{adapters, ClockAdapter, AdapterRegistry, AdapterCtx},
 };
@@ -126,11 +126,10 @@ fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
         .build()?;
 
     // The ClockAdapter sets clock_text on each tick
-    let mut ctx = AdapterCtx::_new();
-    let mut registry = AdapterRegistry::new(adapters! {
+    let registry = AdapterRegistry::new(adapters! {
         "clock" => ClockAdapter { format: "%H:%M:%S".into(), ..Default::default() },
     });
-    registry.init_all(&amp;mut ctx);
+    runtime.attach_adapters(registry, std::time::Duration::from_secs(1), "ClockBar")?;
 
     runtime.run()?;
     Ok(())
@@ -175,7 +174,7 @@ export component WorkspaceBar {
         }
     }
 }</code></pre>
-    <pre><code class="language-rust">use helium::{
+    <pre><code class="language-rust">use helium_wsl::{
     AnchorEdge, Helium,
     adapters::{WorkspacesAdapter},
 };

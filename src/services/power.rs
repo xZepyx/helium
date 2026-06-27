@@ -15,6 +15,9 @@ pub fn batteries() -> Result<Vec<Battery>, String> {
 }
 
 /// Register a callback for battery state changes.
+///
+/// UPower/D-Bus monitoring is not yet implemented. Returns an error until
+/// a real backend is wired.
 pub fn on_change(_cb: impl Fn(Vec<Battery>) + Send + 'static) -> Result<(), String> {
-    Err("UPower not available — enable the \"services\" feature".into())
+    Err("Power on_change: UPower/D-Bus monitoring not yet implemented".into())
 }

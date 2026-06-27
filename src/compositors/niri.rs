@@ -9,6 +9,8 @@ pub struct Niri {
     socket_path: String,
     event_reader: Option<BufReader<UnixStream>>,
     cache: RefCell<Option<Vec<(u64, Workspace)>>>,
+    on_workspace_change_cb: Option<Box<dyn Fn(Workspace) + Send>>,
+    on_window_focus_cb: Option<Box<dyn Fn(Window) + Send>>,
 }
 
 impl Niri {
@@ -25,7 +27,7 @@ impl Niri {
         event_reader.get_mut().write_all(b"{\"EventStream\":null}\n").ok();
         let mut ack = String::new();
         event_reader.read_line(&mut ack).ok();
-        Ok(Niri { socket_path: path, event_reader: Some(event_reader), cache: RefCell::new(None) })
+        Ok(Niri { socket_path: path, event_reader: Some(event_reader), cache: RefCell::new(None), on_workspace_change_cb: None, on_window_focus_cb: None })
     }
 
     pub fn is_running() -> bool {
@@ -227,12 +229,15 @@ impl Compositor for Niri {
                 let niri_id = payload.get("id").and_then(|v| v.as_u64())?;
                 let focused = payload.get("focused").and_then(|v| v.as_bool()).unwrap_or(false);
                 let mut cache = self.cache.borrow_mut();
-                if let Some(ref mut list) = *cache {
+                let event = if let Some(ref mut list) = *cache {
                     for (_, ws) in list.iter_mut() {
                         ws.active = false;
                     }
                     if let Some((_, ws)) = list.iter_mut().find(|(id, _)| *id == niri_id) {
                         ws.active = focused;
+                        if let Some(ref cb) = self.on_workspace_change_cb {
+                            cb(ws.clone());
+                        }
                     }
                     Some(CompositorEvent::WorkspacesUpdated(
                         list.iter().map(|(_, w)| w.clone()).collect()
@@ -240,10 +245,17 @@ impl Compositor for Niri {
                 } else {
                     drop(cache);
                     Some(CompositorEvent::WorkspacesUpdated(self.workspaces()))
-                }
+                };
+                event
             }
             "WindowFocusChanged" => {
-                self.active_window().map(CompositorEvent::WindowFocused)
+                let window = self.active_window();
+                if let Some(ref w) = window {
+                    if let Some(ref cb) = self.on_window_focus_cb {
+                        cb(w.clone());
+                    }
+                }
+                window.map(CompositorEvent::WindowFocused)
             }
             "WindowOpenedOrChanged" => {
                 Some(CompositorEvent::WorkspacesUpdated(self.workspaces_with_windows()))
@@ -284,6 +296,10 @@ impl Compositor for Niri {
         }
     }
 
-    fn on_workspace_change(&mut self, _cb: Box<dyn Fn(Workspace) + Send>) {}
-    fn on_window_focus(&mut self, _cb: Box<dyn Fn(Window) + Send>) {}
+    fn on_workspace_change(&mut self, cb: Box<dyn Fn(Workspace) + Send>) {
+        self.on_workspace_change_cb = Some(cb);
+    }
+    fn on_window_focus(&mut self, cb: Box<dyn Fn(Window) + Send>) {
+        self.on_window_focus_cb = Some(cb);
+    }
 }

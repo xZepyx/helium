@@ -46,10 +46,8 @@
       <tr><th>Priority</th><th>Compositor</th><th>Env var</th></tr>
       <tr><td>1</td><td>Hyprland</td><td><code>HYPRLAND_INSTANCE_SIGNATURE</code></td></tr>
       <tr><td>2</td><td>Niri</td><td><code>NIRI_SOCKET</code></td></tr>
-      <tr><td>3</td><td>Sway</td><td><code>SWAYSOCK</code></td></tr>
-      <tr><td>4</td><td>MangoWM</td><td>(env var not yet documented)</td></tr>
     </table>
-    <pre><code class="language-rust">use helium::compositors;
+    <pre><code class="language-rust">use helium_wsl::compositors;
 
 let mut compositor = compositors::detect()?;
 println!("workspaces: {:?}", compositor.workspaces());
@@ -83,6 +81,18 @@ println!("active: {:?}", compositor.active_workspace());</code></pre>
       <div class="sig"><span class="keyword">fn</span> <span class="fn-name">on_window_focus</span>(&amp;mut self, cb: <span class="type">Box&lt;dyn Fn(Window) + Send&gt;</span>)</div>
       <div class="desc">Register a callback invoked when the focused window changes.</div>
     </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">active_window</span>(&amp;self) -> <span class="type">Option&lt;Window&gt;</span></div>
+      <div class="desc">Get the currently focused window, if any. Default returns <code>None</code>.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">event_fd</span>(&amp;self) -> <span class="type">Option&lt;RawFd&gt;</span></div>
+      <div class="desc">Return the event socket file descriptor for push-based events. Default returns <code>None</code>.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">fn</span> <span class="fn-name">poll_event</span>(&amp;mut self) -> <span class="type">Option&lt;CompositorEvent&gt;</span></div>
+      <div class="desc">Poll one event from the event socket, if available. Default returns <code>None</code>.</div>
+    </div>
   </section>
 
   <!-- ─── Types ─── -->
@@ -95,6 +105,8 @@ println!("active: {:?}", compositor.active_workspace());</code></pre>
       <tr><td><code>id</code></td><td><code>u32</code></td><td>Numeric workspace ID</td></tr>
       <tr><td><code>name</code></td><td><code>String</code></td><td>Workspace display name</td></tr>
       <tr><td><code>active</code></td><td><code>bool</code></td><td>Whether this is the active workspace</td></tr>
+      <tr><td><code>occupied</code></td><td><code>bool</code></td><td>Whether any window exists on this workspace</td></tr>
+      <tr><td><code>window_count</code></td><td><code>u32</code></td><td>Exact number of windows on this workspace</td></tr>
       <tr><td><code>monitor</code></td><td><code>String</code></td><td>Name of the monitor this workspace is on</td></tr>
     </table>
 
@@ -147,35 +159,6 @@ println!("active: {:?}", compositor.active_workspace());</code></pre>
     </div>
   </section>
 
-  <!-- ─── Sway ─── -->
-  <section id="sway">
-    <h2>Sway</h2>
-    <p>Connects via the i3 IPC protocol over the <code>$SWAYSOCK</code> Unix socket.</p>
-    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Sway</span></div>
-    <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">connect</span>() -> <span class="type">Result&lt;Self, HeliumError&gt;</span></div>
-      <div class="desc">Connect to the Sway IPC socket via i3 protocol.</div>
-    </div>
-    <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">is_running</span>() -> <span class="type">bool</span></div>
-      <div class="desc">Check whether <code>SWAYSOCK</code> is set.</div>
-    </div>
-  </section>
-
-  <!-- ─── MangoWM ─── -->
-  <section id="mangowm">
-    <h2>MangoWM</h2>
-    <p>MangoWM IPC is not yet documented by the project. The backend is a stub.</p>
-    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">MangoWM</span></div>
-    <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">connect</span>() -> <span class="type">Result&lt;Self, HeliumError&gt;</span></div>
-      <div class="desc">Returns an error — MangoWM IPC is not yet supported.</div>
-    </div>
-    <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">is_running</span>() -> <span class="type">bool</span></div>
-      <div class="desc">Always returns <code>false</code> until IPC docs are published.</div>
-    </div>
-  </section>
 </div>
 </main>
 

@@ -17,6 +17,9 @@ pub fn set(_profile: Profile) -> Result<(), String> {
 }
 
 /// Register a callback for profile changes.
+///
+/// power-profiles-daemon/D-Bus monitoring is not yet implemented. Returns
+/// an error until a real backend is wired.
 pub fn on_change(_cb: impl Fn(Profile) + Send + 'static) -> Result<(), String> {
-    Err("power-profiles-daemon not available — enable the \"services\" feature".into())
+    Err("PowerProfiles on_change: D-Bus monitoring not yet implemented".into())
 }

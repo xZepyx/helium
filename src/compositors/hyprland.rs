@@ -42,6 +42,8 @@ pub struct Hyprland {
     #[allow(dead_code)]
     event_socket: PathBuf,
     event_reader: Option<BufReader<UnixStream>>,
+    on_workspace_change_cb: Option<Box<dyn Fn(Workspace) + Send>>,
+    on_window_focus_cb: Option<Box<dyn Fn(Window) + Send>>,
 }
 
 impl Hyprland {
@@ -58,7 +60,7 @@ impl Hyprland {
         let event_stream = UnixStream::connect(&event_socket)
             .map_err(|e| crate::HeliumError::Compositor(format!("cannot connect to Hyprland event socket: {e}")))?;
         let event_reader = Some(BufReader::new(event_stream));
-        Ok(Hyprland { socket, event_socket, event_reader })
+        Ok(Hyprland { socket, event_socket, event_reader, on_workspace_change_cb: None, on_window_focus_cb: None })
     }
 
     pub fn is_running() -> bool {
@@ -177,9 +179,14 @@ impl Compositor for Hyprland {
             "workspace" | "workspacev2" => {
                 let workspaces = self.workspaces();
                 let active = workspaces.iter().find(|w| w.active).cloned();
-                active.map(|ws| CompositorEvent::WorkspaceChanged {
-                    focused_window: self.active_window(),
-                    workspace: ws,
+                active.map(|ws| {
+                    if let Some(ref cb) = self.on_workspace_change_cb {
+                        cb(ws.clone());
+                    }
+                    CompositorEvent::WorkspaceChanged {
+                        focused_window: self.active_window(),
+                        workspace: ws,
+                    }
                 })
             }
             "activewindow" => {
@@ -188,11 +195,11 @@ impl Compositor for Hyprland {
                 let title = parts.get(1).unwrap_or(&"").to_string();
                 let ws = self.active_workspace();
                 let workspace_id = ws.as_ref().map(|w| w.id).unwrap_or(0);
-                Some(CompositorEvent::WindowFocused(Window {
-                    title,
-                    class,
-                    workspace_id,
-                }))
+                let window = Window { title, class, workspace_id };
+                if let Some(ref cb) = self.on_window_focus_cb {
+                    cb(window.clone());
+                }
+                Some(CompositorEvent::WindowFocused(window))
             }
             "closewindow" => {
                 Some(CompositorEvent::WindowClosed(Window {
@@ -222,7 +229,11 @@ impl Compositor for Hyprland {
         }
     }
 
-    fn on_workspace_change(&mut self, _cb: Box<dyn Fn(Workspace) + Send>) {}
+    fn on_workspace_change(&mut self, cb: Box<dyn Fn(Workspace) + Send>) {
+        self.on_workspace_change_cb = Some(cb);
+    }
 
-    fn on_window_focus(&mut self, _cb: Box<dyn Fn(Window) + Send>) {}
+    fn on_window_focus(&mut self, cb: Box<dyn Fn(Window) + Send>) {
+        self.on_window_focus_cb = Some(cb);
+    }
 }

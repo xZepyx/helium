@@ -37,7 +37,13 @@ pub fn toggle_mute() -> Result<(), String> {
 ///
 /// This requires a running event loop. The callback is invoked on the
 /// audio backend's thread – you may need to dispatch to your UI thread.
+///
+/// # Note
+///
+/// PipeWire/D-Bus integration is not yet implemented when the
+/// `service-audio` feature is enabled. This function returns an error
+/// until a real backend is wired.
 pub fn on_change(_cb: impl Fn(AudioState) + Send + 'static) -> Result<(), String> {
     backend()?;
-    Ok(())
+    Err("audio on_change: PipeWire/D-Bus monitoring not yet implemented".into())
 }

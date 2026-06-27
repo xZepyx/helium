@@ -81,10 +81,10 @@ Use the `adapters!` macro for a concise registration:
 ```rust
 use helium_wsl::adapters;
 
-let mut registry = adapters! {
+let mut registry = AdapterRegistry::new(adapters! {
     "clock" => ClockAdapter { format: "%H:%M".into(), ..Default::default() },
     "workspaces" => WorkspacesAdapter { max: 9 },
-};
+});
 ```
 
 Or build an `AdapterRegistry` manually:

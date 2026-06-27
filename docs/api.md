@@ -197,10 +197,35 @@ the callback when events arrive. The compositor is consumed.
 ```rust
 let compositor = compositors::detect()?;
 shell.on_compositor_event(compositor, |event, ctx| {
-    if let CompositorEvent::WorkspaceChanged(ws) = event {
-        ctx.set("main", "active_ws", ws.id as i32);
+    if let CompositorEvent::WorkspaceChanged { workspace, .. } = event {
+        ctx.set("main", "active_ws", workspace.id as i32);
     }
 })?;
+```
+
+### `attach_adapters` — wire an adapter registry into the event loop
+
+```rust
+pub fn attach_adapters(
+    &mut self,
+    registry: AdapterRegistry,
+    tick_interval: Duration,
+    surface: &str,
+) -> Result<(), HeliumError>
+```
+
+Registers a repeating timer that ticks all adapters and applies their
+property changes to the named surface.
+
+```rust
+use std::time::Duration;
+use helium_wsl::adapters::{AdapterRegistry, ClockAdapter, WorkspacesAdapter};
+
+let registry = AdapterRegistry::new(adapters! {
+    "clock" => ClockAdapter { format: "%H:%M".into(), ..Default::default() },
+    "workspaces" => WorkspacesAdapter { max: 9 },
+});
+shell.attach_adapters(registry, Duration::from_secs(1), "main")?;
 ```
 
 ### `surface_names` — list registered surfaces
@@ -245,8 +270,9 @@ shell.on_signal("main", "clicked", || {
 });
 ```
 
-Note: callbacks are stored but currently not wired (waiting on
-slint-interpreter API).
+Signals are wired to the Slint component via `set_callback()`.
+Property change callbacks are stored but not wired (waiting on
+slint-interpreter property notification hooks).
 
 ### `on_surface_ready` — per-surface ready callback
 

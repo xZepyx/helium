@@ -19,8 +19,6 @@ Detection checks environment variables in order:
 |----------|-----------|--------------|
 | `HYPRLAND_INSTANCE_SIGNATURE` | Hyprland | `compositor-hyprland` |
 | `NIRI_SOCKET` | Niri | `compositor-niri` |
-| `SWAYSOCK` | Sway / i3 | `compositor-sway` |
-| — (always checked last) | MangoWM | `compositor-mangowm` |
 
 If none of the env vars are present, `detect()` returns an error.
 
@@ -47,6 +45,7 @@ pub struct Workspace {
     pub name: String,
     pub active: bool,
     pub occupied: bool,
+    pub window_count: u32,
     pub monitor: String,
 }
 
@@ -65,7 +64,7 @@ pub struct Window {
 }
 
 pub enum CompositorEvent {
-    WorkspaceChanged(Workspace),
+    WorkspaceChanged { workspace: Workspace, focused_window: Option<Window> },
     WorkspacesUpdated(Vec<Workspace>),
     WindowFocused(Window),
     WindowClosed(Window),
@@ -80,8 +79,6 @@ pub enum CompositorEvent {
 |--------|-------------|
 | `Hyprland` | `Hyprland::connect()` |
 | `Niri` | `Niri::connect()` |
-| `Sway` | `Sway::connect()` |
-| `MangoWM` | `MangoWM::connect()` |
 
 All implement `Compositor` and can be used directly (bypassing `detect`
 if you already know what compositor is running).
@@ -116,8 +113,8 @@ let compositor = compositors::detect()?;
 
 shell.on_compositor_event(compositor, |event, ctx| {
     match event {
-        CompositorEvent::WorkspaceChanged(ws) => {
-            ctx.set("main", "active_ws", ws.id as i32);
+        CompositorEvent::WorkspaceChanged { workspace, .. } => {
+            ctx.set("main", "active_ws", workspace.id as i32);
         }
         _ => {}
     }
@@ -140,11 +137,3 @@ window, and monitor events.
 ### Niri
 
 Connects via `$NIRI_SOCKET`. Requires `compositor-niri` feature.
-
-### Sway
-
-Connects via `$SWAYSOCK`. Requires `compositor-sway` feature.
-
-### MangoWM
-
-Stub — no public IPC documentation available.

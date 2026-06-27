@@ -21,6 +21,9 @@ pub fn status() -> Result<NetworkStatus, String> {
 }
 
 /// Register a callback for network status changes.
+///
+/// NetworkManager/D-Bus monitoring is not yet implemented. Returns an
+/// error until a real backend is wired.
 pub fn on_change(_cb: impl Fn(NetworkStatus) + Send + 'static) -> Result<(), String> {
-    Err("NetworkManager not available — enable the \"services\" feature".into())
+    Err("Network on_change: NetworkManager/D-Bus monitoring not yet implemented".into())
 }

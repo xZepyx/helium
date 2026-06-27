@@ -56,13 +56,55 @@ pub fn set_brightness(v: f32) -> Result<(), BacklightError> {
 /// Register a callback for brightness changes.
 ///
 /// Monitors the `actual_brightness` sysfs file with inotify. The callback
-/// receives the new 0.0–1.0 brightness value.
+/// receives the new 0.0–1.0 brightness value and is called from a
+/// background thread.
+#[cfg(feature = "inotify")]
+pub fn on_change(cb: impl Fn(f32) + Send + 'static) -> Result<(), BacklightError> {
+    use inotify::{Inotify, WatchMask};
+    use std::thread;
+
+    let dev = find_device()?;
+    let path = dev.join("actual_brightness");
+    let max = read_u32(&dev, "max_brightness")?;
+
+    let mut inotify = Inotify::init()?;
+    inotify.watches().add(&path, WatchMask::MODIFY)?;
+
+    thread::spawn(move || {
+        let mut buffer = [0u8; 1024];
+        loop {
+            match inotify.read_events_blocking(&mut buffer) {
+                Ok(events) => {
+                    for _event in events {
+                        let actual = match read_u32(&dev, "actual_brightness") {
+                            Ok(v) => v,
+                            Err(_) => continue,
+                        };
+                        let v = if max > 0 {
+                            actual as f32 / max as f32
+                        } else {
+                            0.0
+                        };
+                        cb(v);
+                    }
+                }
+                Err(_) => break,
+            }
+        }
+    });
+
+    Ok(())
+}
+
+/// Register a callback for brightness changes.
+///
+/// This variant is used when the `inotify` feature is not enabled.
+/// Enable the `inotify` feature in your `Cargo.toml` to use inotify-based
+/// monitoring.
+#[cfg(not(feature = "inotify"))]
 pub fn on_change(_cb: impl Fn(f32) + Send + 'static) -> Result<(), BacklightError> {
-    // Requires the `inotify` crate – currently stubbed.
-    // Implementation: watch `/sys/class/backlight/<dev>/actual_brightness`
-    // with inotify and call `cb` when the file changes.
     Err(BacklightError::Io(std::io::Error::new(
         std::io::ErrorKind::Unsupported,
-        "inotify backlight monitoring not yet wired",
+        "inotify backlight monitoring not available — enable the 'inotify' feature",
     )))
 }

@@ -12,7 +12,7 @@ Add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-helium-wsl = "0.2.0"
+helium-wsl = "0.2.3"
 ```
 
 ```rust
@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 - **Anchor API** — tuple-based `.anchor()` with 1–4 `AnchorEdge` values
 - **Config macro** — `helium_config!` generates nested structs with serde + defaults
-- **Compositors** — unified `Compositor` trait with Hyprland, Niri, Sway, MangoWM backends
+- **Compositors** — unified `Compositor` trait with Hyprland and Niri backends
 - **Services** — time, backlight (always available); audio, bluetooth, network, power, power profiles (feature-gated, stubbed)
 - **Adapters** — `Adapter` trait + built-in `ClockAdapter` and `WorkspacesAdapter` for connecting config to surface properties
 - **Macros** — `helium_struct!` for plain structs, `helium_model!` for Slint-compatible models, `adapters!` for adapter registration

@@ -25,6 +25,9 @@ pub fn devices() -> Result<Vec<BtDevice>, String> {
 }
 
 /// Register a callback for Bluetooth state changes.
+///
+/// BlueZ/D-Bus monitoring is not yet implemented. Returns an error until
+/// a real backend is wired.
 pub fn on_change(_cb: impl Fn(BluetoothState) + Send + 'static) -> Result<(), String> {
-    Err("BlueZ not available — enable the \"services\" feature".into())
+    Err("Bluetooth on_change: BlueZ/D-Bus monitoring not yet implemented".into())
 }

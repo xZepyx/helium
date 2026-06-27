@@ -43,7 +43,8 @@
       configuration structs using a concise DSL. Each field can have a type
       and a default value. Nested <code>{ }</code> blocks generate recursive
       structs. All generated types derive <code>Debug</code>,
-      <code>Clone</code>, <code>serde::Deserialize</code>, and
+      <code>Clone</code>, <code>serde::Deserialize</code>,
+      <code>serde::Serialize</code>, and
       <code>Default</code>, with <code>#[serde(default)]</code> on every
       field so missing JSON keys fall back to the declared default.
     </p>
@@ -88,7 +89,7 @@
 }</code></pre>
 
     <p>The macro generates:</p>
-    <pre><code class="language-rust">#[derive(Debug, Clone, serde::Deserialize)]
+    <pre><code class="language-rust">#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct Config {
     #[serde(default)]
     pub bar: ConfigBar,
@@ -117,6 +118,14 @@ impl Config {
         }
     }
 
+    pub fn reload(&amp;mut self, path: impl AsRef&lt;std::path::Path&gt;) -> Result&lt;(), ConfigError&gt; {
+        let content = std::fs::read_to_string(path.as_ref())
+            .map_err(ConfigError::reading)?;
+        *self = serde_json::from_str(&amp;content)
+            .map_err(ConfigError::parsing)?;
+        Ok(())
+    }
+
     pub fn save(&amp;self, path: impl AsRef&lt;std::path::Path&gt;) -> Result&lt;(), ConfigError&gt; {
         if let Some(parent) = path.as_ref().parent() {
             std::fs::create_dir_all(parent).map_err(ConfigError::reading)?;
@@ -129,7 +138,7 @@ impl Config {
     }
 }
 
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct ConfigBar {
     #[serde(default)]
     pub height: u32,

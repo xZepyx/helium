@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::os::unix::io::{AsFd, BorrowedFd, RawFd};
 use std::path::Path;
+use std::rc::Rc;
 use std::time::Duration;
 
 use layer_shika::prelude::*;
@@ -20,6 +21,7 @@ impl AsFd for FdRef {
     }
 }
 
+use crate::adapters::{AdapterCtx, AdapterRegistry, ShellEvent};
 use crate::anchor::IntoAnchorEdges;
 use crate::compositors::{Compositor, CompositorEvent};
 use crate::HeliumError;
@@ -115,7 +117,7 @@ impl Helium {
     }
 }
 
-/// Wraps [`ShellBuilder`] before any surfaces are configured.
+/// Wraps a `layer-shika` shell builder before any surfaces are configured.
 pub struct ShellInitializer {
     inner: ShellBuilder,
     surface_names: Vec<String>,
@@ -430,14 +432,15 @@ pub struct ShellInstance {
     compositors: Vec<Box<dyn Compositor>>,
     paused: bool,
     surface_names: Vec<String>,
-    property_change_callbacks: HashMap<String, Vec<Box<dyn Fn(slint_interpreter::Value) + 'static>>>,
-    signal_callbacks: HashMap<String, Vec<Box<dyn Fn() + 'static>>>,
+    property_change_callbacks: HashMap<String, HashMap<String, Vec<Box<dyn Fn(slint_interpreter::Value) + 'static>>>>,
+    signal_callbacks: HashMap<String, HashMap<String, Vec<Box<dyn Fn() + 'static>>>>,
     surface_ready_callbacks: Vec<(String, Box<dyn FnOnce(&mut ShellInstance) + 'static>)>,
     event_bus_listeners: HashMap<String, Vec<Box<dyn Fn(slint_interpreter::Value) + 'static>>>,
     surface_created_callbacks: Vec<Box<dyn Fn(String) + 'static>>,
     surface_destroyed_callbacks: Vec<Box<dyn Fn(String) + 'static>>,
     surface_monitors: HashMap<String, String>,
     key_callbacks: Vec<Box<dyn Fn(KeyEvent) + 'static>>,
+    adapter_registry: Option<AdapterRegistry>,
 }
 
 impl ShellInstance {
@@ -456,6 +459,7 @@ impl ShellInstance {
             surface_destroyed_callbacks: Vec::new(),
             surface_monitors: HashMap::new(),
             key_callbacks: Vec::new(),
+            adapter_registry: None,
         }
     }
 
@@ -480,10 +484,27 @@ impl ShellInstance {
     }
 
     fn register_surface_callbacks(&mut self) {
-        let _prop_cbs = std::mem::take(&mut self.property_change_callbacks);
-        let _sig_cbs = std::mem::take(&mut self.signal_callbacks);
-        // todo: register property change and signal callbacks with component
-        // instances when slint-interpreter exposes the necessary API.
+        let signal_callbacks = std::mem::take(&mut self.signal_callbacks);
+        for (surface_name, signals) in signal_callbacks {
+            if signals.is_empty() { continue; }
+            let _ = self.inner.with_surface(&surface_name, |comp| {
+                for (signal_name, callbacks) in signals {
+                    comp.set_callback(&signal_name, move |_args| {
+                        for cb in &callbacks {
+                            cb();
+                        }
+                        slint_interpreter::Value::Void
+                    }).ok();
+                }
+            });
+        }
+
+        // Property change callbacks cannot be wired via slint-interpreter
+        // because it does not expose property-change notification hooks.
+        // Keep the data around in case a future slint-interpreter version
+        // adds this capability; for now the callbacks are stored but never
+        // fired.
+        // let _prop_cbs = std::mem::take(&mut self.property_change_callbacks);
     }
 
     /// Set a property on a named surface component.
@@ -619,6 +640,51 @@ impl ShellInstance {
         Ok(())
     }
 
+    /// Attach adapters and wire them into the event loop.
+    ///
+    /// `surface` is the name of the surface that adapter properties will be
+    /// written to (usually `"main"`). `tick_interval` controls how often
+    /// [`Adapter::tick`] and the [`ShellEvent::Tick`] event are dispatched.
+    ///
+    /// This moves the registry into a repeating timer; you do not need to
+    /// keep a reference to it afterward.
+    pub fn attach_adapters(
+        &mut self,
+        mut registry: AdapterRegistry,
+        tick_interval: Duration,
+        surface: &str,
+    ) -> std::result::Result<(), HeliumError> {
+        let surface = surface.to_string();
+
+        let mut ctx = AdapterCtx::_new();
+        registry.init_all(&mut ctx);
+        for (prop, val) in ctx.take_changes() {
+            self.set(&surface, &prop, val);
+        }
+
+        let registry = Rc::new(RefCell::new(registry));
+        let inner_registry = registry.clone();
+        let handle = self.inner.event_loop_handle();
+        handle
+            .add_timer(tick_interval, move |_instant, app_state| {
+                let mut registry = inner_registry.borrow_mut();
+                let mut ctx = AdapterCtx::_new();
+                registry.tick_all(&mut ctx);
+                registry.event_all(&ShellEvent::Tick, &mut ctx);
+                for (prop, val) in ctx.take_changes() {
+                    let value = slint_interpreter::Value::String(val.into());
+                    for s in app_state.surfaces_by_name(&surface) {
+                        let _ = s.component_instance().set_property(&prop, value.clone());
+                    }
+                }
+                layer_shika::calloop::TimeoutAction::ToDuration(tick_interval)
+            })
+            .map_err(|e| HeliumError::Shell(e.to_string()))?;
+
+        self.adapter_registry = Some(Rc::into_inner(registry).unwrap().into_inner());
+        Ok(())
+    }
+
     /// List all registered surface names.
     pub fn surface_names(&self) -> Vec<String> {
         self.surface_names.clone()
@@ -653,8 +719,9 @@ impl ShellInstance {
         self.property_change_callbacks
             .entry(surface.to_string())
             .or_default()
+            .entry(prop.to_string())
+            .or_default()
             .push(Box::new(cb));
-        let _ = prop;
         self
     }
 
@@ -668,8 +735,9 @@ impl ShellInstance {
         self.signal_callbacks
             .entry(surface.to_string())
             .or_default()
+            .entry(signal.to_string())
+            .or_default()
             .push(Box::new(cb));
-        let _ = signal;
         self
     }
 

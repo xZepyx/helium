@@ -38,7 +38,7 @@ helium_config! {
 | `HeliumConfigBarModulesClock` | `format: String`, `interval_ms: u64` |
 | `HeliumConfigBarModulesWorkspaces` | `max: u8` |
 
-Each struct derives `Debug`, `Clone`, `serde::Deserialize`, and `Default`.
+Each struct derives `Debug`, `Clone`, `serde::Deserialize`, `serde::Serialize`, and `Default`.
 Values after `=` are used as defaults when a field is missing from JSON.
 
 ### Naming rules for nested types

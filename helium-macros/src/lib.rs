@@ -180,10 +180,10 @@ fn gen_load_method(root: &StructDef) -> proc_macro2::TokenStream {
             /// the path (creating parent directories as needed) and returned.
             /// If the file exists but contains invalid JSON, a parse error is
             /// returned.
-            pub fn load(path: impl AsRef<std::path::Path>) -> Result<Self, helium::ConfigError> {
+            pub fn load(path: impl AsRef<std::path::Path>) -> Result<Self, helium_wsl::ConfigError> {
                 match std::fs::read_to_string(path.as_ref()) {
                     Ok(content) => {
-                        serde_json::from_str(&content).map_err(helium::ConfigError::parsing)
+                        serde_json::from_str(&content).map_err(helium_wsl::ConfigError::parsing)
                     }
                     Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                         if let Some(parent) = path.as_ref().parent() {
@@ -195,24 +195,24 @@ fn gen_load_method(root: &StructDef) -> proc_macro2::TokenStream {
                         }
                         Ok(default)
                     }
-                    Err(e) => Err(helium::ConfigError::reading(e)),
+                    Err(e) => Err(helium_wsl::ConfigError::reading(e)),
                 }
             }
 
             /// Re-read the config from a JSON file, replacing the current values.
-            pub fn reload(&mut self, path: impl AsRef<std::path::Path>) -> Result<(), helium::ConfigError> {
-                let content = std::fs::read_to_string(path.as_ref()).map_err(helium::ConfigError::reading)?;
-                *self = serde_json::from_str(&content).map_err(helium::ConfigError::parsing)?;
+            pub fn reload(&mut self, path: impl AsRef<std::path::Path>) -> Result<(), helium_wsl::ConfigError> {
+                let content = std::fs::read_to_string(path.as_ref()).map_err(helium_wsl::ConfigError::reading)?;
+                *self = serde_json::from_str(&content).map_err(helium_wsl::ConfigError::parsing)?;
                 Ok(())
             }
 
             /// Save config to a JSON file, creating parent directories if needed.
-            pub fn save(&self, path: impl AsRef<std::path::Path>) -> Result<(), helium::ConfigError> {
+            pub fn save(&self, path: impl AsRef<std::path::Path>) -> Result<(), helium_wsl::ConfigError> {
                 if let Some(parent) = path.as_ref().parent() {
-                    std::fs::create_dir_all(parent).map_err(helium::ConfigError::reading)?;
+                    std::fs::create_dir_all(parent).map_err(helium_wsl::ConfigError::reading)?;
                 }
-                let content = serde_json::to_string_pretty(self).map_err(helium::ConfigError::parsing)?;
-                std::fs::write(path.as_ref(), content).map_err(helium::ConfigError::reading)?;
+                let content = serde_json::to_string_pretty(self).map_err(helium_wsl::ConfigError::parsing)?;
+                std::fs::write(path.as_ref(), content).map_err(helium_wsl::ConfigError::reading)?;
                 Ok(())
             }
         }
