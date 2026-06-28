@@ -19,24 +19,33 @@ chrono = "0.4"
 zbus = { version = "4", optional = true }
 inotify = { version = "0.10", optional = true }
 helium-wsl-macros = { path = "./helium-macros", version = "0.2.3" }
-tokio = { version = "1", features = ["rt"] }
+tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
+zvariant = "4"
+clap = { version = "4", features = ["derive"], optional = true }
+
+[[bin]]
+name = "helium"
+path = "src/bin/helium-cli.rs"
+required-features = ["cli"]
 
 [features]
 default = ["compositors", "services"]
 
-# Compositor backends — gate individual IPC implementations
+# Compositor backends
 compositors = ["compositor-hyprland", "compositor-niri"]
 compositor-hyprland = []
 compositor-niri = []
 
-# Service modules — time and backlight are always available (no external deps);
-# the rest require zbus for their D-Bus backends.
+# Service modules
 services = ["service-audio", "service-bluetooth", "service-network", "service-power", "service-powerprofiles"]
 service-audio = ["zbus"]
 service-bluetooth = ["zbus"]
 service-network = ["zbus"]
 service-power = ["zbus"]
 service-powerprofiles = ["zbus"]
+
+# CLI binary
+cli = ["clap"]
 
 [workspace]
 members = [".", "helium-macros"]

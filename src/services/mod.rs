@@ -1,6 +1,15 @@
 pub mod backlight;
 pub mod time;
 
+#[cfg(any(
+    feature = "service-audio",
+    feature = "service-bluetooth",
+    feature = "service-network",
+    feature = "service-power",
+    feature = "service-powerprofiles"
+))]
+mod dbus;
+
 #[cfg(feature = "service-audio")]
 pub mod audio;
 #[cfg(feature = "service-bluetooth")]

@@ -1,9 +1,10 @@
 use std::cell::RefCell;
+use std::collections::VecDeque;
 use std::io::{BufRead, BufReader, ErrorKind, Write};
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::os::unix::net::UnixStream;
 use serde::Deserialize;
-use super::compositor::{Compositor, CompositorEvent, Monitor, Window, Workspace};
+use super::compositor::{Compositor, CompositorEvent, Monitor, Window, WindowDiffusion, Workspace};
 
 pub struct Niri {
     socket_path: String,
@@ -11,6 +12,8 @@ pub struct Niri {
     cache: RefCell<Option<Vec<(u64, Workspace)>>>,
     on_workspace_change_cb: Option<Box<dyn Fn(Workspace) + Send>>,
     on_window_focus_cb: Option<Box<dyn Fn(Window) + Send>>,
+    previous_focus: Option<Window>,
+    event_queue: VecDeque<CompositorEvent>,
 }
 
 impl Niri {
@@ -27,7 +30,7 @@ impl Niri {
         event_reader.get_mut().write_all(b"{\"EventStream\":null}\n").ok();
         let mut ack = String::new();
         event_reader.read_line(&mut ack).ok();
-        Ok(Niri { socket_path: path, event_reader: Some(event_reader), cache: RefCell::new(None), on_workspace_change_cb: None, on_window_focus_cb: None })
+        Ok(Niri { socket_path: path, event_reader: Some(event_reader), cache: RefCell::new(None), on_workspace_change_cb: None, on_window_focus_cb: None, previous_focus: None, event_queue: VecDeque::new() })
     }
 
     pub fn is_running() -> bool {
@@ -196,6 +199,11 @@ impl Compositor for Niri {
     }
 
     fn poll_event(&mut self) -> Option<CompositorEvent> {
+        // Drain the event queue first
+        if let Some(event) = self.event_queue.pop_front() {
+            return Some(event);
+        }
+
         let reader = self.event_reader.as_mut()?;
         let line = Self::read_line_nonblocking(reader)?;
         let val: serde_json::Value = serde_json::from_str(&line).ok()?;
@@ -250,11 +258,15 @@ impl Compositor for Niri {
             }
             "WindowFocusChanged" => {
                 let window = self.active_window();
+                let unfocused = self.previous_focus.take();
                 if let Some(ref w) = window {
                     if let Some(ref cb) = self.on_window_focus_cb {
                         cb(w.clone());
                     }
                 }
+                let diffusion = WindowDiffusion { unfocused, focused: window.clone() };
+                self.previous_focus = window.clone();
+                self.event_queue.push_back(CompositorEvent::WindowDiffusion(diffusion));
                 window.map(CompositorEvent::WindowFocused)
             }
             "WindowOpenedOrChanged" => {

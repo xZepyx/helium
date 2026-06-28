@@ -33,7 +33,7 @@ pub use layer_shika::Layer;
 
 pub use config::ConfigError;
 pub use anchor::{AnchorEdge, IntoAnchorEdges};
-pub use compositors::CompositorEvent;
+pub use compositors::{CompositorEvent, WindowDiffusion};
 pub use shell::{
     Helium, IntoSlintValue, IpcContext, Key, KeyboardMode, KeyEvent, Modifiers, MonitorPolicy,
     PropertyBatch, ShellInitializer, ShellInstance, SurfaceInitializer, TickContext,
@@ -48,7 +48,7 @@ pub mod prelude {
     pub use crate::{
         AnchorEdge, CompositorEvent, Helium, IntoSlintValue, IpcContext, Key, KeyboardMode,
         KeyEvent, Layer, Modifiers, MonitorPolicy, PropertyBatch, ShellInitializer, ShellInstance,
-        SurfaceInitializer, TickContext,
+        SurfaceInitializer, TickContext, WindowDiffusion,
     };
 }
 

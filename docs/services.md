@@ -47,27 +47,61 @@ audio::on_change(|state| {
 
 ## Bluetooth
 
-Requires `service-bluetooth` feature. Currently stubbed — all functions
-return errors at runtime.
+Requires `service-bluetooth` feature (included in `services`). Uses
+BlueZ D-Bus via zbus.
 
 ```rust
 use helium_wsl::services::bluetooth;
 
-let enabled = bluetooth::enabled()?;
+let state = bluetooth::state()?;
+println!("{} is {}", state.name, if state.enabled { "on" } else { "off" });
+
 let devices = bluetooth::devices()?;
+for d in &devices {
+    println!("{} ({})", d.name, d.address);
+}
+
+bluetooth::set_enabled(true)?;     // power on
+bluetooth::set_enabled(false)?;    // power off
+bluetooth::scan()?;                // scan for 5s, return found devices
+bluetooth::start_discovery()?;     // start scanning
+bluetooth::stop_discovery()?;      // stop scanning
+
+bluetooth::connect("AA:BB:CC:DD:EE:FF")?;
+bluetooth::disconnect("AA:BB:CC:DD:EE:FF")?;
+bluetooth::pair("AA:BB:CC:DD:EE:FF")?;
+bluetooth::unpair("AA:BB:CC:DD:EE:FF")?;
+bluetooth::trust("AA:BB:CC:DD:EE:FF", true)?;
+bluetooth::block("AA:BB:CC:DD:EE:FF", true)?;
 ```
+
+`on_change` is currently stubbed.
 
 ## Network
 
-Requires `service-network` feature. Currently stubbed — all functions
-return errors at runtime.
+Requires `service-network` feature (included in `services`). Uses
+NetworkManager D-Bus via zbus.
 
 ```rust
 use helium_wsl::services::network;
 
 let status = network::status()?;
-println!("connected: {}, ssid: {:?}", status.connected, status.ssid);
+println!("connected: {}, ssid: {:?}, ip: {:?}",
+    status.connected, status.ssid, status.ip_address);
+
+let aps = network::scan()?;        // request scan, wait 1.5s, return APs
+for ap in &aps {
+    println!("{} ({}%)", ap.ssid, ap.strength);
+}
+
+network::connect("MyWiFi", Some("password"))?;
+network::disconnect()?;
+
+let saved = network::saved_connections()?;
+network::forget("MyWiFi")?;
 ```
+
+`on_change` is currently stubbed.
 
 ## Power
 
@@ -102,7 +136,7 @@ powerprofiles::set(powerprofiles::Profile::PowerSaver)?;
 | `time` | always | `chrono` |
 | `backlight` | always | (sysfs, no dep) |
 | `audio` | `service-audio` | `zbus` (stubbed) |
-| `bluetooth` | `service-bluetooth` | `zbus` (stubbed) |
-| `network` | `service-network` | `zbus` (stubbed) |
+| `bluetooth` | `service-bluetooth` | `zbus` (bluez D-Bus) |
+| `network` | `service-network` | `zbus` (NM D-Bus) |
 | `power` | `service-power` | `zbus` (stubbed) |
 | `powerprofiles` | `service-powerprofiles` | `zbus` (stubbed) |

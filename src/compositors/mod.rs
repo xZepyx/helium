@@ -5,7 +5,7 @@ pub mod hyprland;
 #[cfg(feature = "compositor-niri")]
 pub mod niri;
 
-pub use compositor::{Compositor, CompositorEvent, Monitor, Window, Workspace};
+pub use compositor::{Compositor, CompositorEvent, Monitor, Window, WindowDiffusion, Workspace};
 
 pub fn detect() -> Result<Box<dyn Compositor>, crate::HeliumError> {
     #[cfg(feature = "compositor-hyprland")]

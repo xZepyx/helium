@@ -63,10 +63,16 @@ pub struct Window {
     pub workspace_id: u32,
 }
 
+pub struct WindowDiffusion {
+    pub unfocused: Option<Window>,
+    pub focused: Option<Window>,
+}
+
 pub enum CompositorEvent {
     WorkspaceChanged { workspace: Workspace, focused_window: Option<Window> },
     WorkspacesUpdated(Vec<Workspace>),
     WindowFocused(Window),
+    WindowDiffusion(WindowDiffusion),
     WindowClosed(Window),
     MonitorAdded(Monitor),
     MonitorRemoved(String),

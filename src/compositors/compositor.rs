@@ -27,6 +27,18 @@ pub struct Window {
     pub workspace_id: u32,
 }
 
+/// Represents a window focus diffusion event — a window losing focus.
+///
+/// Tracks the previously focused window and the newly focused window.
+/// Either or both may be `None` (e.g. no window focused before/after).
+#[derive(Debug, Clone)]
+pub struct WindowDiffusion {
+    /// The window that was focused before the change, if any.
+    pub unfocused: Option<Window>,
+    /// The window that is focused now, if any.
+    pub focused: Option<Window>,
+}
+
 /// Events emitted by the compositor event socket.
 ///
 /// NOTE: In 0.2.3 `WorkspaceChanged` changed from a tuple variant
@@ -42,6 +54,7 @@ pub enum CompositorEvent {
     },
     WorkspacesUpdated(Vec<Workspace>),
     WindowFocused(Window),
+    WindowDiffusion(WindowDiffusion),
     WindowClosed(Window),
     MonitorAdded(Monitor),
     MonitorRemoved(String),

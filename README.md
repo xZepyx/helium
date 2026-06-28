@@ -41,7 +41,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 - **Anchor API** — tuple-based `.anchor()` with 1–4 `AnchorEdge` values
 - **Config macro** — `helium_config!` generates nested structs with serde + defaults
 - **Compositors** — unified `Compositor` trait with Hyprland and Niri backends
-- **Services** — time, backlight (always available); audio, bluetooth, network, power, power profiles (feature-gated, stubbed)
+- **Services** — time, backlight (always available); bluetooth (BlueZ D-Bus) and network (NetworkManager D-Bus) via feature-gated zbus wrappers; audio, power, power profiles (feature-gated, stubbed)
+- **CLI binary** — `cargo run --features cli,services,compositors -- wifi|bluetooth|window` for interactive testing
 - **Adapters** — `Adapter` trait + built-in `ClockAdapter` and `WorkspacesAdapter` for connecting config to surface properties
 - **Macros** — `helium_struct!` for plain structs, `helium_model!` for Slint-compatible models, `adapters!` for adapter registration
 

@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::os::unix::net::UnixStream;
@@ -5,7 +6,7 @@ use std::path::PathBuf;
 
 use serde::Deserialize;
 
-use super::compositor::{Compositor, CompositorEvent, Monitor, Window, Workspace};
+use super::compositor::{Compositor, CompositorEvent, Monitor, Window, WindowDiffusion, Workspace};
 
 #[derive(Deserialize)]
 struct HyprlandWorkspace {
@@ -44,6 +45,8 @@ pub struct Hyprland {
     event_reader: Option<BufReader<UnixStream>>,
     on_workspace_change_cb: Option<Box<dyn Fn(Workspace) + Send>>,
     on_window_focus_cb: Option<Box<dyn Fn(Window) + Send>>,
+    previous_focus: Option<Window>,
+    event_queue: VecDeque<CompositorEvent>,
 }
 
 impl Hyprland {
@@ -60,7 +63,7 @@ impl Hyprland {
         let event_stream = UnixStream::connect(&event_socket)
             .map_err(|e| crate::HeliumError::Compositor(format!("cannot connect to Hyprland event socket: {e}")))?;
         let event_reader = Some(BufReader::new(event_stream));
-        Ok(Hyprland { socket, event_socket, event_reader, on_workspace_change_cb: None, on_window_focus_cb: None })
+        Ok(Hyprland { socket, event_socket, event_reader, on_workspace_change_cb: None, on_window_focus_cb: None, previous_focus: None, event_queue: VecDeque::new() })
     }
 
     pub fn is_running() -> bool {
@@ -167,6 +170,11 @@ impl Compositor for Hyprland {
     }
 
     fn poll_event(&mut self) -> Option<CompositorEvent> {
+        // Drain the event queue first
+        if let Some(event) = self.event_queue.pop_front() {
+            return Some(event);
+        }
+
         let reader = self.event_reader.as_mut()?;
         let mut line = String::new();
         reader.read_line(&mut line).ok()?;
@@ -196,9 +204,14 @@ impl Compositor for Hyprland {
                 let ws = self.active_workspace();
                 let workspace_id = ws.as_ref().map(|w| w.id).unwrap_or(0);
                 let window = Window { title, class, workspace_id };
+                let unfocused = self.previous_focus.take();
                 if let Some(ref cb) = self.on_window_focus_cb {
                     cb(window.clone());
                 }
+                let diffusion = WindowDiffusion { unfocused, focused: Some(window.clone()) };
+                self.previous_focus = Some(window.clone());
+                // Queue the diffusion event and return WindowFocused first
+                self.event_queue.push_back(CompositorEvent::WindowDiffusion(diffusion));
                 Some(CompositorEvent::WindowFocused(window))
             }
             "closewindow" => {
