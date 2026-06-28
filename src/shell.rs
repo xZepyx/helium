@@ -433,7 +433,7 @@ pub struct ShellInstance {
     paused: bool,
     surface_names: Vec<String>,
     property_change_callbacks: HashMap<String, HashMap<String, Vec<Box<dyn Fn(slint_interpreter::Value) + 'static>>>>,
-    signal_callbacks: HashMap<String, HashMap<String, Vec<Box<dyn Fn() + 'static>>>>,
+    signal_callbacks: HashMap<String, HashMap<String, Vec<Box<dyn Fn(&[slint_interpreter::Value]) + 'static>>>>,
     surface_ready_callbacks: Vec<(String, Box<dyn FnOnce(&mut ShellInstance) + 'static>)>,
     event_bus_listeners: HashMap<String, Vec<Box<dyn Fn(slint_interpreter::Value) + 'static>>>,
     surface_created_callbacks: Vec<Box<dyn Fn(String) + 'static>>,
@@ -489,9 +489,9 @@ impl ShellInstance {
             if signals.is_empty() { continue; }
             let _ = self.inner.with_surface(&surface_name, |comp| {
                 for (signal_name, callbacks) in signals {
-                    comp.set_callback(&signal_name, move |_args| {
+                    comp.set_callback(&signal_name, move |args| {
                         for cb in &callbacks {
-                            cb();
+                            cb(args);
                         }
                         slint_interpreter::Value::Void
                     }).ok();
@@ -730,7 +730,7 @@ impl ShellInstance {
         &mut self,
         surface: &str,
         signal: &str,
-        cb: impl Fn() + 'static,
+        cb: impl Fn(&[slint_interpreter::Value]) + 'static,
     ) -> &mut Self {
         self.signal_callbacks
             .entry(surface.to_string())
