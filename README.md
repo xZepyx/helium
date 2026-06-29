@@ -45,7 +45,7 @@ Helium can be configured in python but it also supports C++ for maximum speed. T
 
 ## Examples
 * I have wrote some examples here: [./examples](./examples)
-* The best source is probably [nucleus-shell-v2](https://github.com/nucleus-hq/nucleus-shell/tree/v2) (actively being worked on)
+* The best source was probably [nucleus-shell-v2](https://github.com/nucleus-hq/nucleus-shell/tree/v2) It's now archived and the rewrite has been stopped. If you go to a older commit you will find the helium-gtk version code.
 
 ## Contributing
 Feel free to contribute. I will write the guides soon.
