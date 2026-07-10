@@ -88,6 +88,7 @@ macro_rules! prop_getter {
 
 prop_getter!(get_property_u32, u32);
 prop_getter!(get_property_bool, bool);
+#[allow(dead_code)]
 prop_getter!(get_property_i16, i16);
 
 pub fn get_property_string(
