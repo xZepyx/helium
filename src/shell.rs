@@ -9,6 +9,18 @@ use layer_shika::prelude::*;
 use layer_shika::calloop::{Interest, Mode};
 use layer_shika::Layer;
 
+/// Stored surface configuration used to restore a surface after `hide()`.
+#[derive(Debug, Clone, Copy)]
+struct SurfaceHideConfig {
+    width: u32,
+    height: u32,
+    exclusive_zone: i32,
+    margin_top: i32,
+    margin_right: i32,
+    margin_bottom: i32,
+    margin_left: i32,
+}
+
 /// A non-owning file descriptor wrapper for use with calloop.
 ///
 /// Does not close the underlying fd on drop. The caller must ensure
@@ -77,6 +89,7 @@ impl Helium {
         ShellInitializer {
             inner: Shell::from_file(path),
             surface_names: Vec::new(),
+            surface_configs: HashMap::new(),
         }
     }
 
@@ -87,6 +100,7 @@ impl Helium {
         ShellInitializer {
             inner: Shell::from_compilation(compilation),
             surface_names: Vec::new(),
+            surface_configs: HashMap::new(),
         }
     }
 
@@ -105,6 +119,7 @@ impl Helium {
         ShellInitializer {
             inner: Shell::from_compilation(std::rc::Rc::new(result)),
             surface_names: Vec::new(),
+            surface_configs: HashMap::new(),
         }
     }
 
@@ -113,6 +128,7 @@ impl Helium {
         ShellInitializer {
             inner: Shell::from_source(code),
             surface_names: Vec::new(),
+            surface_configs: HashMap::new(),
         }
     }
 }
@@ -121,6 +137,7 @@ impl Helium {
 pub struct ShellInitializer {
     inner: ShellBuilder,
     surface_names: Vec<String>,
+    surface_configs: HashMap<String, SurfaceHideConfig>,
 }
 
 impl ShellInitializer {
@@ -131,15 +148,17 @@ impl ShellInitializer {
             inner: self.inner.surface(name),
             width: None,
             height: None,
+            margin: (0, 0, 0, 0),
             exclusive_flag: false,
             surface_names: self.surface_names.clone(),
+            surface_configs: self.surface_configs.clone(),
         }
     }
 
     /// Build the shell directly (uses a default "Main" surface).
     pub fn build(self) -> std::result::Result<ShellInstance, HeliumError> {
         let shell = self.inner.build().map_err(|e| HeliumError::Shell(e.to_string()))?;
-        Ok(ShellInstance::new(shell, self.surface_names))
+        Ok(ShellInstance::new(shell, self.surface_names, self.surface_configs))
     }
 }
 
@@ -152,26 +171,45 @@ pub struct SurfaceInitializer {
     inner: SurfaceConfigBuilder,
     width: Option<u32>,
     height: Option<u32>,
+    margin: (i32, i32, i32, i32),
     exclusive_flag: bool,
     surface_names: Vec<String>,
+    surface_configs: HashMap<String, SurfaceHideConfig>,
 }
 
 impl SurfaceInitializer {
     /// Start configuring a new surface, finalizing the current one.
     pub fn surface(mut self, name: &str) -> Self {
+        let prev_name = self.surface_names.last().cloned();
         if self.exclusive_flag {
             let zone = self.height.or(self.width).unwrap_or(0) as i32;
             if zone != 0 {
                 self.inner = self.inner.exclusive_zone(zone);
             }
         }
+        if let Some(prev) = prev_name {
+            let w = self.width.unwrap_or(0);
+            let h = self.height.unwrap_or(0);
+            let zone = if self.exclusive_flag { self.height.or(self.width).unwrap_or(0) as i32 } else { 0 };
+            self.surface_configs.insert(prev, SurfaceHideConfig {
+                width: w,
+                height: h,
+                exclusive_zone: zone,
+                margin_top: self.margin.0,
+                margin_right: self.margin.1,
+                margin_bottom: self.margin.2,
+                margin_left: self.margin.3,
+            });
+        }
         self.surface_names.push(name.to_string());
         SurfaceInitializer {
             inner: self.inner.surface(name),
             width: None,
             height: None,
+            margin: (0, 0, 0, 0),
             exclusive_flag: false,
             surface_names: self.surface_names.clone(),
+            surface_configs: self.surface_configs.clone(),
         }
     }
 
@@ -250,6 +288,7 @@ impl SurfaceInitializer {
 
     /// Set margins in pixels.
     pub fn margin(mut self, top: i32, right: i32, bottom: i32, left: i32) -> Self {
+        self.margin = (top, right, bottom, left);
         self.inner = self.inner.margin((top, right, bottom, left));
         self
     }
@@ -269,8 +308,22 @@ impl SurfaceInitializer {
                 self.inner = self.inner.exclusive_zone(zone);
             }
         }
+        if let Some(name) = self.surface_names.last().cloned() {
+            let w = self.width.unwrap_or(0);
+            let h = self.height.unwrap_or(0);
+            let zone = if self.exclusive_flag { self.height.or(self.width).unwrap_or(0) as i32 } else { 0 };
+            self.surface_configs.insert(name, SurfaceHideConfig {
+                width: w,
+                height: h,
+                exclusive_zone: zone,
+                margin_top: self.margin.0,
+                margin_right: self.margin.1,
+                margin_bottom: self.margin.2,
+                margin_left: self.margin.3,
+            });
+        }
         let shell = self.inner.build().map_err(|e| HeliumError::Shell(e.to_string()))?;
-        Ok(ShellInstance::new(shell, self.surface_names))
+        Ok(ShellInstance::new(shell, self.surface_names, self.surface_configs))
     }
 
     /// Build and run the shell event loop (blocks).
@@ -441,10 +494,11 @@ pub struct ShellInstance {
     surface_monitors: HashMap<String, String>,
     key_callbacks: Vec<Box<dyn Fn(KeyEvent) + 'static>>,
     adapter_registry: Option<AdapterRegistry>,
+    surface_configs: HashMap<String, SurfaceHideConfig>,
 }
 
 impl ShellInstance {
-    fn new(inner: Shell, surface_names: Vec<String>) -> Self {
+    fn new(inner: Shell, surface_names: Vec<String>, surface_configs: HashMap<String, SurfaceHideConfig>) -> Self {
         ShellInstance {
             inner,
             ready_cb: None,
@@ -460,6 +514,7 @@ impl ShellInstance {
             surface_monitors: HashMap::new(),
             key_callbacks: Vec::new(),
             adapter_registry: None,
+            surface_configs,
         }
     }
 
@@ -752,16 +807,25 @@ impl ShellInstance {
         self
     }
 
-    /// Hide a surface.
+    /// Hide a surface by pushing it off-screen and releasing its
+    /// exclusive zone.
     pub fn hide(&mut self, surface: &str) {
-        // todo: waiting on layer-shika visibility API
-        let _ = surface;
+        let ctrl = self.inner.control();
+        let handle = ctrl.surface_by_name(surface);
+        let _ = handle.set_exclusive_zone(0);
+        let _ = handle.set_margins((0, 0, -10_000, 0));
     }
 
-    /// Show a previously hidden surface.
+    /// Show a previously hidden surface, restoring its original dimensions,
+    /// margins, and exclusive zone.
     pub fn show(&mut self, surface: &str) {
-        // todo: waiting on layer-shika visibility API
-        let _ = surface;
+        if let Some(cfg) = self.surface_configs.get(surface).copied() {
+            let ctrl = self.inner.control();
+            let handle = ctrl.surface_by_name(surface);
+            let _ = handle.resize(cfg.width, cfg.height);
+            let _ = handle.set_exclusive_zone(cfg.exclusive_zone);
+            let _ = handle.set_margins((cfg.margin_top, cfg.margin_right, cfg.margin_bottom, cfg.margin_left));
+        }
     }
 
     /// Hot-swap the `.slint` file for a surface without restarting the shell.
