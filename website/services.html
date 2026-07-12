@@ -132,18 +132,20 @@ backlight::set_brightness(0.8)?;</code></pre>
     </div>
     <div class="method">
       <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_change</span>(cb: <span class="type">impl Fn(f32) + Send + 'static</span>) -> <span class="type">Result&lt;(), BacklightError&gt;</span></div>
-      <div class="desc">Register a callback for brightness changes. Uses <code>inotify</code> when the <code>services</code> feature is enabled.</div>
+      <div class="desc">Register a callback for brightness changes. Requires the <code>inotify</code> feature; returns an error if not enabled.</div>
     </div>
   </section>
 
   <!-- ─── bluetooth ─── -->
   <section id="bluetooth">
     <h2>bluetooth</h2>
-    <p>Bluetooth adapter state and device list via BlueZ D-Bus.</p>
+    <p>Bluetooth adapter state and device list via BlueZ D-Bus. Fully implemented.</p>
     <pre><code class="language-rust">use helium_wsl::services::bluetooth;
 
-let enabled = bluetooth::enabled()?;
-let devices = bluetooth::devices()?;</code></pre>
+let state = bluetooth::state()?;
+let devices = bluetooth::devices()?;
+bluetooth::set_enabled(true)?;
+bluetooth::scan()?;</code></pre>
 
     <h3>Types</h3>
     <div class="type-header"><span class="keyword">struct</span> <span class="type-name">BtDevice</span></div>
@@ -152,39 +154,104 @@ let devices = bluetooth::devices()?;</code></pre>
       <tr><td><code>name</code></td><td><code>String</code></td><td>Device display name</td></tr>
       <tr><td><code>address</code></td><td><code>String</code></td><td>MAC address</td></tr>
       <tr><td><code>connected</code></td><td><code>bool</code></td><td>Whether the device is currently connected</td></tr>
+      <tr><td><code>paired</code></td><td><code>bool</code></td><td>Whether the device is paired</td></tr>
       <tr><td><code>battery</code></td><td><code>Option&lt;u8&gt;</code></td><td>Battery level percentage, if available</td></tr>
+      <tr><td><code>rssi</code></td><td><code>Option&lt;i16&gt;</code></td><td>Signal strength in dBm, if known</td></tr>
+      <tr><td><code>trusted</code></td><td><code>bool</code></td><td>Whether the device is trusted</td></tr>
+      <tr><td><code>blocked</code></td><td><code>bool</code></td><td>Whether the device is blocked</td></tr>
+      <tr><td><code>icon</code></td><td><code>Option&lt;String&gt;</code></td><td>Device icon name, if available</td></tr>
+      <tr><td><code>path</code></td><td><code>String</code></td><td>D-Bus object path</td></tr>
     </table>
 
     <div class="type-header"><span class="keyword">struct</span> <span class="type-name">BluetoothState</span></div>
     <table>
       <tr><th>Field</th><th>Type</th><th>Description</th></tr>
       <tr><td><code>enabled</code></td><td><code>bool</code></td><td>Whether Bluetooth is turned on</td></tr>
-      <tr><td><code>devices</code></td><td><code>Vec&lt;BtDevice&gt;</code></td><td>Known paired/connected devices</td></tr>
+      <tr><td><code>discovering</code></td><td><code>bool</code></td><td>Whether a discovery scan is active</td></tr>
+      <tr><td><code>discoverable</code></td><td><code>bool</code></td><td>Whether the adapter is discoverable</td></tr>
+      <tr><td><code>pairable</code></td><td><code>bool</code></td><td>Whether the adapter is pairable</td></tr>
+      <tr><td><code>address</code></td><td><code>String</code></td><td>Adapter MAC address</td></tr>
+      <tr><td><code>name</code></td><td><code>String</code></td><td>Adapter name</td></tr>
+      <tr><td><code>devices</code></td><td><code>Vec&lt;BtDevice&gt;</code></td><td>Known devices</td></tr>
+      <tr><td><code>adapter_path</code></td><td><code>Option&lt;String&gt;</code></td><td>D-Bus adapter object path</td></tr>
     </table>
 
     <h3>Functions</h3>
     <div class="method">
       <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">enabled</span>() -> <span class="type">Result&lt;bool, String&gt;</span></div>
-      <div class="desc">Check whether Bluetooth is enabled on the system.</div>
+      <div class="desc">Check whether the Bluetooth adapter is powered on.</div>
     </div>
     <div class="method">
       <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">devices</span>() -> <span class="type">Result&lt;Vec&lt;BtDevice&gt;, String&gt;</span></div>
-      <div class="desc">Get the list of known Bluetooth devices.</div>
+      <div class="desc">List all known Bluetooth devices.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">state</span>() -> <span class="type">Result&lt;BluetoothState, String&gt;</span></div>
+      <div class="desc">Full adapter state including all devices.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">scan</span>() -> <span class="type">Result&lt;Vec&lt;BtDevice&gt;, String&gt;</span></div>
+      <div class="desc">Start discovery for 5 seconds, return visible devices.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">start_discovery</span>() -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Start continuous scanning.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">stop_discovery</span>() -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Stop continuous scanning.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set_enabled</span>(on: <span class="type">bool</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Power the adapter on or off.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set_discoverable</span>(on: <span class="type">bool</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Make the adapter discoverable to other devices.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set_pairable</span>(on: <span class="type">bool</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Make the adapter pairable.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">connect</span>(address: <span class="type">&amp;str</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Connect to a device by MAC address (with 6s timeout).</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">disconnect</span>(address: <span class="type">&amp;str</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Disconnect from a device.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">pair</span>(address: <span class="type">&amp;str</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Pair with a device (with 6s timeout).</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">unpair</span>(address: <span class="type">&amp;str</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Remove pairing for a device.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">trust</span>(address: <span class="type">&amp;str</span>, trusted: <span class="type">bool</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Set device trust status.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">block</span>(address: <span class="type">&amp;str</span>, blocked: <span class="type">bool</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Block or unblock a device.</div>
     </div>
     <div class="method">
       <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_change</span>(cb: <span class="type">impl Fn(BluetoothState) + Send + 'static</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
-      <div class="desc">Register a callback for Bluetooth state changes.</div>
+      <div class="desc">Register a callback for Bluetooth state changes. Stubbed — not yet implemented.</div>
     </div>
   </section>
 
   <!-- ─── network ─── -->
   <section id="network">
     <h2>network</h2>
-    <p>Network connectivity status via NetworkManager D-Bus.</p>
+    <p>Network connectivity status via NetworkManager D-Bus. Fully implemented.</p>
     <pre><code class="language-rust">use helium_wsl::services::network;
 
 let status = network::status()?;
-println!("connected: {}, ssid: {:?}", status.connected, status.ssid);</code></pre>
+let aps = network::scan()?;
+network::connect("MyWiFi", Some("password"))?;</code></pre>
 
     <h3>Types</h3>
     <div class="type-header"><span class="keyword">enum</span> <span class="type-name">ConnectionType</span></div>
@@ -195,6 +262,17 @@ println!("connected: {}, ssid: {:?}", status.connected, status.ssid);</code></pr
       <tr><td><code>None</code></td><td>No active connection</td></tr>
     </table>
 
+    <div class="type-header"><span class="keyword">enum</span> <span class="type-name">Connectivity</span></div>
+    <table>
+      <tr><th>Variant</th><th>Description</th></tr>
+      <tr><td><code>Unknown</code></td><td>Unknown connectivity state</td></tr>
+      <tr><td><code>NoConnection</code></td><td>No network connection</td></tr>
+      <tr><td><code>Connecting</code></td><td>Connection in progress</td></tr>
+      <tr><td><code>ConnectedLocal</code></td><td>Connected to local network only</td></tr>
+      <tr><td><code>ConnectedSite</code></td><td>Connected to site network</td></tr>
+      <tr><td><code>ConnectedGlobal</code></td><td>Connected to the internet</td></tr>
+    </table>
+
     <div class="type-header"><span class="keyword">struct</span> <span class="type-name">NetworkStatus</span></div>
     <table>
       <tr><th>Field</th><th>Type</th><th>Description</th></tr>
@@ -202,6 +280,27 @@ println!("connected: {}, ssid: {:?}", status.connected, status.ssid);</code></pr
       <tr><td><code>ssid</code></td><td><code>Option&lt;String&gt;</code></td><td>Wi-Fi SSID if connected to wireless</td></tr>
       <tr><td><code>signal_strength</code></td><td><code>Option&lt;u8&gt;</code></td><td>Wi-Fi signal strength percentage</td></tr>
       <tr><td><code>connection_type</code></td><td><code>ConnectionType</code></td><td>Type of active connection</td></tr>
+      <tr><td><code>connectivity</code></td><td><code>Connectivity</code></td><td>Detailed connectivity state</td></tr>
+      <tr><td><code>ip_address</code></td><td><code>Option&lt;String&gt;</code></td><td>IPv4 address(es) if connected</td></tr>
+    </table>
+
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">WifiAccessPoint</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>ssid</code></td><td><code>String</code></td><td>Network name</td></tr>
+      <tr><td><code>bssid</code></td><td><code>String</code></td><td>Access point MAC address</td></tr>
+      <tr><td><code>strength</code></td><td><code>u8</code></td><td>Signal strength percentage</td></tr>
+      <tr><td><code>frequency</code></td><td><code>u32</code></td><td>Frequency in MHz</td></tr>
+      <tr><td><code>protected</code></td><td><code>bool</code></td><td>Whether the network requires authentication</td></tr>
+    </table>
+
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">SavedConnection</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>id</code></td><td><code>String</code></td><td>Connection ID</td></tr>
+      <tr><td><code>uuid</code></td><td><code>String</code></td><td>Connection UUID</td></tr>
+      <tr><td><code>ssid</code></td><td><code>Option&lt;String&gt;</code></td><td>Wi-Fi SSID, if applicable</td></tr>
+      <tr><td><code>path</code></td><td><code>String</code></td><td>D-Bus object path</td></tr>
     </table>
 
     <h3>Functions</h3>
@@ -210,8 +309,28 @@ println!("connected: {}, ssid: {:?}", status.connected, status.ssid);</code></pr
       <div class="desc">Get current network status from NetworkManager.</div>
     </div>
     <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">scan</span>() -> <span class="type">Result&lt;Vec&lt;WifiAccessPoint&gt;, String&gt;</span></div>
+      <div class="desc">Request a scan, wait 1.5 seconds, and return visible access points.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">connect</span>(ssid: <span class="type">&amp;str</span>, password: <span class="type">Option&lt;&amp;str&gt;</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Connect to a Wi-Fi network. Creates a NetworkManager connection profile.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">disconnect</span>() -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Disconnect all Wi-Fi devices.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">saved_connections</span>() -> <span class="type">Result&lt;Vec&lt;SavedConnection&gt;, String&gt;</span></div>
+      <div class="desc">List saved Wi-Fi connections.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">forget</span>(ssid_or_uuid: <span class="type">&amp;str</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
+      <div class="desc">Delete a saved connection by SSID, UUID, or connection ID.</div>
+    </div>
+    <div class="method">
       <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_change</span>(cb: <span class="type">impl Fn(NetworkStatus) + Send + 'static</span>) -> <span class="type">Result&lt;(), String&gt;</span></div>
-      <div class="desc">Register a callback for network status changes.</div>
+      <div class="desc">Register a callback for network status changes. Stubbed — not yet implemented.</div>
     </div>
   </section>
 

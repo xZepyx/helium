@@ -411,6 +411,8 @@ impl IntoSlintValue for slint_interpreter::Value {
 /// Lightweight handle passed into [`ShellInstance::on_tick`] callbacks.
 pub struct TickContext<'a> {
     app_state: &'a mut layer_shika_adapters::AppState,
+    control: layer_shika::prelude::ShellControl,
+    surface_configs: &'a HashMap<String, SurfaceHideConfig>,
 }
 
 impl TickContext<'_> {
@@ -430,6 +432,24 @@ impl TickContext<'_> {
             .surfaces_by_name(surface)
             .first()
             .and_then(|s| s.component_instance().get_property(prop).ok())
+    }
+
+    /// Hide a surface by pushing it off-screen and releasing its exclusive zone.
+    pub fn hide(&self, surface: &str) {
+        let handle = self.control.surface_by_name(surface);
+        let _ = handle.set_exclusive_zone(0);
+        let _ = handle.set_margins((0, 0, -10_000, 0));
+    }
+
+    /// Show a previously hidden surface, restoring its original dimensions,
+    /// margins, and exclusive zone.
+    pub fn show(&self, surface: &str) {
+        if let Some(cfg) = self.surface_configs.get(surface) {
+            let handle = self.control.surface_by_name(surface);
+            let _ = handle.resize(cfg.width, cfg.height);
+            let _ = handle.set_exclusive_zone(cfg.exclusive_zone);
+            let _ = handle.set_margins((cfg.margin_top, cfg.margin_right, cfg.margin_bottom, cfg.margin_left));
+        }
     }
 }
 
@@ -608,10 +628,12 @@ impl ShellInstance {
             return Ok(());
         }
         let handle = self.inner.event_loop_handle();
+        let control = self.inner.control();
+        let configs = self.surface_configs.clone();
         let cb = RefCell::new(cb);
         handle
             .add_timer(interval, move |_instant, app_state| {
-                let mut ctx = TickContext { app_state };
+                let mut ctx = TickContext { app_state, control: control.clone(), surface_configs: &configs };
                 let mut cb = cb.borrow_mut();
                 cb(&mut ctx);
                 layer_shika::calloop::TimeoutAction::ToDuration(interval)
@@ -681,10 +703,12 @@ impl ShellInstance {
         let compositor = RefCell::new(compositor);
         let cb = RefCell::new(cb);
         let handle = self.inner.event_loop_handle();
+        let control = self.inner.control();
+        let configs = self.surface_configs.clone();
         let fd_ref = FdRef(fd);
         handle
             .add_fd(fd_ref, Interest::READ, Mode::Level, move |app_state| {
-                let mut tick_ctx = TickContext { app_state };
+                let mut tick_ctx = TickContext { app_state, control: control.clone(), surface_configs: &configs };
                 let mut compositor = compositor.borrow_mut();
                 let mut cb = cb.borrow_mut();
                 while let Some(event) = compositor.poll_event() {

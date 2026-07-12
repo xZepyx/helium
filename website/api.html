@@ -92,6 +92,11 @@
       <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_source</span>(code: <span class="type">impl Into&lt;String&gt;</span>) -> <span class="type">ShellInitializer</span></div>
       <div class="desc">Build from a Slint source string. Compiles the string at runtime.</div>
     </div>
+
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">from_file_with_compiler</span>(path: <span class="type">impl AsRef&lt;Path&gt;</span>, compiler: <span class="type">Compiler</span>) -> <span class="type">ShellInitializer</span></div>
+      <div class="desc">Load a <code>.slint</code> file with a pre-configured <code>Compiler</code>. Uses <code>tokio::runtime::Runtime::block_on</code> to resolve the async <code>build_from_path</code> call synchronously.</div>
+    </div>
   </section>
 
   <!-- ─── ShellInitializer ─── -->
@@ -261,8 +266,8 @@
     </div>
 
     <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_signal</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, signal: <span class="type">&amp;str</span>, cb: <span class="type">impl Fn() + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
-      <div class="desc">Register a callback for a Slint signal. Wired via <code>set_callback()</code>.</div>
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_signal</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, signal: <span class="type">&amp;str</span>, cb: <span class="type">impl Fn(&amp;[slint_interpreter::Value]) + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="desc">Register a callback for a Slint signal. The callback receives the signal arguments as <code>&amp;[slint_interpreter::Value]</code>. Wired via <code>set_callback()</code>.</div>
     </div>
 
     <div class="method">
@@ -281,12 +286,12 @@
     </div>
 
     <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_event</span>(&amp;mut self, name: <span class="type">&amp;str</span>, cb: <span class="type">impl Fn(Option&lt;&amp;str&gt;) + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">on_event</span>(&amp;mut self, name: <span class="type">&amp;str</span>, cb: <span class="type">impl Fn(slint_interpreter::Value) + 'static</span>) -> <span class="type">&amp;mut Self</span></div>
       <div class="desc">Register a listener for a custom event bus event.</div>
     </div>
 
     <div class="method">
-      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">emit</span>(&amp;mut self, name: <span class="type">&amp;str</span>, payload: <span class="type">&amp;str</span>)</div>
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">emit</span>(&amp;mut self, name: <span class="type">&amp;str</span>, payload: <span class="type">impl IntoSlintValue</span>)</div>
       <div class="desc">Emit a custom event on the event bus.</div>
     </div>
 
@@ -297,12 +302,12 @@
 
     <div class="method">
       <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">hide</span>(&amp;mut self, surface: <span class="type">&amp;str</span>)</div>
-      <div class="desc">Hide a surface. Currently stubbed (waiting on layer-shika visibility API).</div>
+      <div class="desc">Hide a surface by pushing it off-screen and releasing its exclusive zone. The original dimensions and margins are stored for <code>show()</code>.</div>
     </div>
 
     <div class="method">
       <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">show</span>(&amp;mut self, surface: <span class="type">&amp;str</span>)</div>
-      <div class="desc">Show a previously hidden surface. Currently stubbed (waiting on layer-shika visibility API).</div>
+      <div class="desc">Show a previously hidden surface, restoring its original dimensions, margins, and exclusive zone.</div>
     </div>
 
     <div class="method">
@@ -376,6 +381,169 @@
       Use this escape hatch when you need access to raw Wayland types that Helium doesn't wrap.
     </p>
     <pre><code class="language-rust">use helium_wsl::raw::layer_shika::*;</code></pre>
+  </section>
+
+  <!-- ─── TickContext ─── -->
+  <section id="tickcontext">
+    <h2>TickContext</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">TickContext</span></div>
+    <p>Lightweight handle passed into <code>on_tick</code> and <code>on_compositor_event</code> callbacks. Exposes property access and surface visibility control.</p>
+
+    <h3>Methods</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, prop: <span class="type">&amp;str</span>, value: <span class="type">impl IntoSlintValue</span>)</div>
+      <div class="desc">Set a property on a named surface component.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">get</span>(&amp;self, surface: <span class="type">&amp;str</span>, prop: <span class="type">&amp;str</span>) -> <span class="type">Option&lt;slint_interpreter::Value&gt;</span></div>
+      <div class="desc">Read a property from a named surface component.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">hide</span>(&amp;self, surface: <span class="type">&amp;str</span>)</div>
+      <div class="desc">Hide a surface by pushing it off-screen and releasing its exclusive zone.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">show</span>(&amp;self, surface: <span class="type">&amp;str</span>)</div>
+      <div class="desc">Show a previously hidden surface, restoring its original dimensions, margins, and exclusive zone.</div>
+    </div>
+  </section>
+
+  <!-- ─── IpcContext ─── -->
+  <section id="ipccontext">
+    <h2>IpcContext</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">IpcContext</span></div>
+    <p>Lightweight handle passed into <code>on_ipc</code> callbacks. Exposes property access.</p>
+
+    <h3>Methods</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set</span>(&amp;mut self, surface: <span class="type">&amp;str</span>, prop: <span class="type">&amp;str</span>, value: <span class="type">impl IntoSlintValue</span>)</div>
+      <div class="desc">Set a property on a named surface component.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">get</span>(&amp;self, surface: <span class="type">&amp;str</span>, prop: <span class="type">&amp;str</span>) -> <span class="type">Option&lt;slint_interpreter::Value&gt;</span></div>
+      <div class="desc">Read a property from a named surface component.</div>
+    </div>
+  </section>
+
+  <!-- ─── PropertyBatch ─── -->
+  <section id="propertybatch">
+    <h2>PropertyBatch</h2>
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">PropertyBatch</span></div>
+    <p>Obtained via <code>ShellInstance::update</code>. Properties are applied when the closure returns.</p>
+
+    <h3>Methods</h3>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">set</span>(&amp;mut self, prop: <span class="type">&amp;str</span>, value: <span class="type">impl IntoSlintValue</span>)</div>
+      <div class="desc">Set a property value.</div>
+    </div>
+    <div class="method">
+      <div class="sig"><span class="keyword">pub fn</span> <span class="fn-name">get</span>(&amp;self, prop: <span class="type">&amp;str</span>) -> <span class="type">Option&lt;slint_interpreter::Value&gt;</span></div>
+      <div class="desc">Read a property value.</div>
+    </div>
+  </section>
+
+  <!-- ─── KeyboardMode ─── -->
+  <section id="keyboardmode">
+    <h2>KeyboardMode</h2>
+    <div class="type-header"><span class="keyword">enum</span> <span class="type-name">KeyboardMode</span></div>
+    <p>Keyboard interactivity mode for a layer surface.</p>
+
+    <h3>Variants</h3>
+    <table>
+      <tr><th>Variant</th><th>Description</th></tr>
+      <tr><td><code>None</code></td><td>No keyboard interactivity</td></tr>
+      <tr><td><code>OnDemand</code></td><td>Keyboard on demand</td></tr>
+      <tr><td><code>Exclusive</code></td><td>Exclusive keyboard access</td></tr>
+    </table>
+  </section>
+
+  <!-- ─── Key / KeyEvent / Modifiers ─── -->
+  <section id="key">
+    <h2>Key, KeyEvent, Modifiers</h2>
+    <div class="type-header"><span class="keyword">enum</span> <span class="type-name">Key</span></div>
+    <p>A key identifier used with <code>on_key</code>. Includes letters A–Z, function keys F1–F12, navigation keys, and a <code>Raw(u32)</code> fallback for unknown keys.</p>
+
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">Modifiers</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>ctrl</code></td><td><code>bool</code></td><td>Ctrl key held</td></tr>
+      <tr><td><code>alt</code></td><td><code>bool</code></td><td>Alt key held</td></tr>
+      <tr><td><code>shift</code></td><td><code>bool</code></td><td>Shift key held</td></tr>
+      <tr><td><code>super_key</code></td><td><code>bool</code></td><td>Super/Meta key held</td></tr>
+    </table>
+
+    <div class="type-header"><span class="keyword">struct</span> <span class="type-name">KeyEvent</span></div>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>key</code></td><td><code>Key</code></td><td>The key that changed</td></tr>
+      <tr><td><code>modifiers</code></td><td><code>Modifiers</code></td><td>Active modifier keys</td></tr>
+      <tr><td><code>pressed</code></td><td><code>bool</code></td><td><code>true</code> for key-down, <code>false</code> for key-up</td></tr>
+    </table>
+  </section>
+
+  <!-- ─── IntoSlintValue ─── -->
+  <section id="intoslvalue">
+    <h2>IntoSlintValue</h2>
+    <div class="type-header"><span class="keyword">trait</span> <span class="type-name">IntoSlintValue</span></div>
+    <p>Automatic conversion of Rust values into <code>slint_interpreter::Value</code>.</p>
+
+    <table>
+      <tr><th>Rust type</th><th>Slint variant</th></tr>
+      <tr><td><code>f64</code>, <code>f32</code></td><td><code>Value::Number(f64)</code></td></tr>
+      <tr><td><code>u8</code>, <code>u16</code>, <code>u32</code>, <code>u64</code></td><td><code>Value::Number(f64)</code></td></tr>
+      <tr><td><code>i32</code>, <code>i64</code></td><td><code>Value::Number(f64)</code></td></tr>
+      <tr><td><code>bool</code></td><td><code>Value::Bool(bool)</code></td></tr>
+      <tr><td><code>String</code>, <code>&amp;str</code></td><td><code>Value::String(SharedString)</code></td></tr>
+      <tr><td><code>slint_interpreter::Value</code></td><td>identity (pass through)</td></tr>
+    </table>
+  </section>
+
+  <!-- ─── Prelude ─── -->
+  <section id="prelude">
+    <h2>Prelude</h2>
+    <pre><code class="language-rust">use helium_wsl::prelude::*;</code></pre>
+    <p>Brings into scope: <code>AnchorEdge</code>, <code>CompositorEvent</code>, <code>Helium</code>, <code>IntoSlintValue</code>, <code>IpcContext</code>, <code>Key</code>, <code>KeyboardMode</code>, <code>KeyEvent</code>, <code>Layer</code>, <code>Modifiers</code>, <code>MonitorPolicy</code>, <code>PropertyBatch</code>, <code>ShellInitializer</code>, <code>ShellInstance</code>, <code>SurfaceInitializer</code>, <code>TickContext</code>, <code>WindowDiffusion</code>.</p>
+  </section>
+
+  <!-- ─── Macros ─── -->
+  <section id="macros">
+    <h2>Macros</h2>
+
+    <h3><code>helium_config!</code></h3>
+    <p>Declare typed config structs with defaults. Generates nested serde-deserializable structs with <code>Default</code>, <code>load(path)</code>, <code>save(path)</code>, and <code>reload(path)</code> methods.</p>
+    <pre><code class="language-rust">helium_config! {
+    Config {
+        bar: {
+            height: u32 = 42,
+            modules: {
+                clock: { format: String = "%H:%M" },
+            },
+        },
+    }
+}</code></pre>
+
+    <h3><code>helium_struct!</code></h3>
+    <p>Generate a plain struct with <code>Debug</code>, <code>Clone</code>, <code>PartialEq</code>, public fields, and a <code>new()</code> constructor.</p>
+    <pre><code class="language-rust">helium_struct! {
+    Foo {
+        name: String,
+        count: i32,
+    }
+}</code></pre>
+
+    <h3><code>helium_model!</code></h3>
+    <p>Generate a Slint-compatible model wrapper around <code>Vec&lt;T&gt;</code>. Exposes <code>push</code>, <code>clear</code>, <code>from_vec</code>, <code>set_vec</code>, and <code>row_count</code>. Implements <code>Into&lt;slint_interpreter::Value&gt;</code>.</p>
+    <pre><code class="language-rust">helium_model! { MyModel(String) }
+
+let model = MyModel::from_vec(vec!["a".into(), "b".into()]);
+let value: slint_interpreter::Value = model.into();</code></pre>
+
+    <h3><code>adapters!</code></h3>
+    <p>Concise adapter registration macro.</p>
+    <pre><code class="language-rust">adapters! {
+    "clock" => ClockAdapter { format: "%H:%M".into(), ..Default::default() },
+    "workspaces" => WorkspacesAdapter { max: 9 },
+}</code></pre>
   </section>
 </div>
 </main>

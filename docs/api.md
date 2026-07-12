@@ -28,6 +28,7 @@ Alternative entry points:
 | `Helium::from_file(path)` | Load a `.slint` file from disk |
 | `Helium::from_source(code)` | Parse a Slint source string |
 | `Helium::from_compilation(compilation)` | Use a pre-compiled `CompilationResult` |
+| `Helium::from_file_with_compiler(path, compiler)` | Load a `.slint` file with a pre-configured `Compiler` |
 
 ### SurfaceInitializer methods
 
@@ -242,6 +243,9 @@ shell.with_all_surfaces(|name| {
 });
 ```
 
+The callback receives each surface name. Use [`set`](#set--write-a-slint-property) or
+[`get`](#get--read-a-slint-property) to access properties from the callback.
+
 ### `update` — bulk property update
 
 ```rust
@@ -265,14 +269,13 @@ instance (waiting on slint-interpreter API).
 ### `on_signal` — react to Slint signals
 
 ```rust
-shell.on_signal("main", "clicked", || {
-    println!("button clicked!");
+shell.on_signal("main", "clicked", |args| {
+    println!("signal fired with {} args", args.len());
 });
 ```
 
+The callback receives `&[slint_interpreter::Value]` — the signal arguments.
 Signals are wired to the Slint component via `set_callback()`.
-Property change callbacks are stored but not wired (waiting on
-slint-interpreter property notification hooks).
 
 ### `on_surface_ready` — per-surface ready callback
 
@@ -323,7 +326,11 @@ shell.hide("main");
 shell.show("main");
 ```
 
-Currently stubbed (waiting on layer-shika visibility API).
+`hide` pushes the surface off-screen by setting a large negative bottom
+margin and clearing the exclusive zone. `show` restores the original
+dimensions, margins, and exclusive zone stored at build time.
+
+Both `ShellInstance` and `TickContext` expose these methods.
 
 ### `reload_ui`
 
@@ -375,6 +382,8 @@ for surface properties.
 impl TickContext<'_> {
     pub fn set(&mut self, surface: &str, prop: &str, value: impl IntoSlintValue);
     pub fn get(&self, surface: &str, prop: &str) -> Option<slint_interpreter::Value>;
+    pub fn hide(&self, surface: &str);
+    pub fn show(&self, surface: &str);
 }
 
 impl IpcContext<'_> {
@@ -401,7 +410,9 @@ Trait for automatic conversion of Rust values into `slint_interpreter::Value`.
 
 | Rust type | Slint variant |
 |-----------|--------------|
-| `f64`, `f32`, `u8`–`u64`, `i32`, `i64` | `Value::Number(f64)` |
+| `f64`, `f32` | `Value::Number(f64)` |
+| `u8`, `u16`, `u32`, `u64` | `Value::Number(f64)` |
+| `i32`, `i64` | `Value::Number(f64)` |
 | `bool` | `Value::Bool(bool)` |
 | `String`, `&str` | `Value::String(SharedString)` |
 | `slint_interpreter::Value` | identity (pass through) |
@@ -455,7 +466,8 @@ use helium_wsl::prelude::*;
 Brings into scope: `AnchorEdge`, `CompositorEvent`, `Helium`,
 `IntoSlintValue`, `IpcContext`, `Key`, `KeyboardMode`, `KeyEvent`,
 `Layer`, `Modifiers`, `MonitorPolicy`, `PropertyBatch`,
-`ShellInitializer`, `ShellInstance`, `SurfaceInitializer`, `TickContext`.
+`ShellInitializer`, `ShellInstance`, `SurfaceInitializer`, `TickContext`,
+`WindowDiffusion`.
 
 ## Macros
 

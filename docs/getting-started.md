@@ -30,10 +30,11 @@ helium-wsl = { version = "0.2.3", default-features = false }
 | `compositor-hyprland` | Hyprland IPC backend |
 | `compositor-niri` | Niri IPC backend |
 | `service-audio` | Audio backend (PipeWire/PulseAudio via D-Bus, stubbed) |
-| `service-bluetooth` | Bluetooth (BlueZ via D-Bus, stubbed) |
-| `service-network` | NetworkManager via D-Bus (stubbed) |
+| `service-bluetooth` | Bluetooth (BlueZ via D-Bus, fully implemented) |
+| `service-network` | NetworkManager via D-Bus (fully implemented) |
 | `service-power` | UPower via D-Bus (stubbed) |
 | `service-powerprofiles` | power-profiles-daemon via D-Bus (stubbed) |
+| `inotify` | Backlight brightness change monitoring via inotify |
 
 Time and backlight are always available — they use `chrono` and sysfs
 respectively, no external deps needed.
